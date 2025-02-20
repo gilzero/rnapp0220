@@ -96,15 +96,15 @@ export interface IconProps {
 export const APP_CONFIG = {
   NETWORK: {
     TIMEOUTS: {
-      API_REQUEST: 30_000,
-      STREAM: 60_000,
-      CONNECTION: 10_000,
-      SOCKET: 5_000,
+      API_REQUEST: parseInt(process.env['EXPO_PUBLIC_API_REQUEST_TIMEOUT'] || '30000'),
+      STREAM: parseInt(process.env['EXPO_PUBLIC_STREAM_TIMEOUT'] || '60000'),
+      CONNECTION: parseInt(process.env['EXPO_PUBLIC_CONNECTION_TIMEOUT'] || '10000'),
+      SOCKET: parseInt(process.env['EXPO_PUBLIC_SOCKET_TIMEOUT'] || '5000'),
     },
     RETRY: {
-      MAX_ATTEMPTS: 3,
-      BACKOFF_MS: 1_000,
-      MAX_BACKOFF_MS: 5_000,
+      MAX_ATTEMPTS: parseInt(process.env['EXPO_PUBLIC_MAX_RETRY_ATTEMPTS'] || '3'),
+      BACKOFF_MS: parseInt(process.env['EXPO_PUBLIC_RETRY_BACKOFF_MS'] || '1000'),
+      MAX_BACKOFF_MS: parseInt(process.env['EXPO_PUBLIC_MAX_RETRY_BACKOFF_MS'] || '5000'),
     },
     RATE_LIMITS: {
       REQUESTS_PER_MINUTE: 60,
@@ -114,9 +114,9 @@ export const APP_CONFIG = {
 
   VALIDATION: {
     MESSAGES: {
-      MAX_LENGTH: 4_000,
-      MIN_LENGTH: 1,
-      MAX_HISTORY: 100,
+      MAX_LENGTH: parseInt(process.env['EXPO_PUBLIC_MAX_MESSAGE_LENGTH'] || '4000'),
+      MIN_LENGTH: parseInt(process.env['EXPO_PUBLIC_MIN_MESSAGE_LENGTH'] || '1'),
+      MAX_HISTORY: parseInt(process.env['EXPO_PUBLIC_MAX_MESSAGES_IN_CONTEXT'] || '100'),
     },
     INPUTS: {
       MAX_FILE_SIZE: 10 * 1024 * 1024,
@@ -125,9 +125,9 @@ export const APP_CONFIG = {
   },
 
   CACHE: {
-    MESSAGE_TTL: 24 * 60 * 60 * 1_000,
-    MAX_CACHE_SIZE: 50 * 1024 * 1024,
-    INVALIDATION_INTERVAL: 60 * 60 * 1_000,
+    MESSAGE_TTL: parseInt(process.env['EXPO_PUBLIC_MESSAGE_TTL'] || '86400000'),
+    MAX_CACHE_SIZE: parseInt(process.env['EXPO_PUBLIC_MAX_CACHE_SIZE'] || '52428800'),
+    INVALIDATION_INTERVAL: parseInt(process.env['EXPO_PUBLIC_CACHE_INVALIDATION_INTERVAL'] || '3600000'),
   },
 
   ERRORS: {
@@ -243,31 +243,41 @@ function createProvider(
   return { label, icon, displayName }
 }
 
-export const DEFAULT_PROVIDER = (process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'] || PROVIDER_GPT) as ProviderIdentifier;
+interface ProviderEnvConfig {
+  id: ProviderIdentifier;
+  displayName: string;
+  iconMappingKey: string;
+}
 
-export const PROVIDERS = {
-  GPT: (process.env['EXPO_PUBLIC_PROVIDER_GPT'] || PROVIDER_GPT) as typeof PROVIDER_GPT,
-  CLAUDE: (process.env['EXPO_PUBLIC_PROVIDER_CLAUDE'] || PROVIDER_CLAUDE) as typeof PROVIDER_CLAUDE,
-  GEMINI: (process.env['EXPO_PUBLIC_PROVIDER_GEMINI'] || PROVIDER_GEMINI) as typeof PROVIDER_GEMINI
+const providersConfig: Record<string, ProviderEnvConfig> = (() => {
+  try {
+    return JSON.parse(process.env['EXPO_PUBLIC_PROVIDERS'] || '{}');
+  } catch (e) {
+    console.error('Failed to parse EXPO_PUBLIC_PROVIDERS:', e);
+    return {};
+  }
+})();
+
+export const DEFAULT_PROVIDER = (
+  process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'] || 
+  Object.keys(providersConfig)[0] || 
+  PROVIDER_GPT
+) as ProviderIdentifier;
+
+const ICON_MAPPING = {
+  'openai': OpenAIIcon,
+  'anthropic': AnthropicIcon,
+  'gemini': GeminiIcon
 } as const;
 
-export const MODELPROVIDERS = {
-  [PROVIDER_GPT]: createProvider(
-    PROVIDER_GPT,
-    'GPT-4',
-    OpenAIIcon
-  ),
-  [PROVIDER_CLAUDE]: createProvider(
-    PROVIDER_CLAUDE,
-    'Claude',
-    AnthropicIcon
-  ),
-  [PROVIDER_GEMINI]: createProvider(
-    PROVIDER_GEMINI,
-    'Gemini',
-    GeminiIcon
-  )
-} as Record<ProviderIdentifier, ModelProviderConfig>;
+export const MODELPROVIDERS = Object.entries(providersConfig).reduce((acc, [key, config]) => {
+  acc[key as ProviderIdentifier] = {
+    label: key as ProviderIdentifier,
+    displayName: config.displayName,
+    icon: ICON_MAPPING[config.iconMappingKey as keyof typeof ICON_MAPPING] || null
+  };
+  return acc;
+}, {} as Record<ProviderIdentifier, ModelProviderConfig>);
 
 const COLORS = {
   white: '#fff',
@@ -385,16 +395,21 @@ export const THEMES: ThemeType = {
   }
 } as const;
 
+export const MODEL_PARAMS = {
+  TEMPERATURE: parseFloat(process.env['EXPO_PUBLIC_TEMPERATURE'] || '0.7'),
+  MAX_TOKENS: parseInt(process.env['EXPO_PUBLIC_MAX_TOKENS'] || '2000', 10)
+} as const;
+
 export const SETTINGS_CONFIG = {
   MODEL_PARAMS: {
     TEMPERATURE: {
-      DEFAULT: 0.7,
+      DEFAULT: MODEL_PARAMS.TEMPERATURE,
       MIN: 0,
       MAX: 1,
       STEP: 0.01
     },
     MAX_TOKENS: {
-      DEFAULT: 2000,
+      DEFAULT: MODEL_PARAMS.MAX_TOKENS,
       MIN: 100,
       MAX: 8192,
       STEP: 100

@@ -17,7 +17,7 @@ import { useFonts } from 'expo-font';
 
 import { MainNavigator } from './navigation';
 import { ModelProviderConfig, MODELPROVIDERS, THEMES, FONTS, getBottomSheetStyles, APP_CONFIG, DEFAULT_PROVIDER, ProviderIdentifier } from './config';
-import { ProvidersModal } from './components/index';
+import { ProvidersModal } from './components';
 import { ThemeContext, AppContext } from './contexts';
 import { ErrorBoundary } from './components';
 
@@ -26,8 +26,19 @@ const { STORAGE_KEYS } = APP_CONFIG;
 SplashScreen.preventAutoHideAsync()
 
 const useAppConfiguration = () => {
-  const defaultProvider = DEFAULT_PROVIDER as ProviderIdentifier;
-  const [chatType, setChatType] = useState<ModelProviderConfig>(MODELPROVIDERS[defaultProvider] || MODELPROVIDERS.gpt);
+  // If no providers are configured, use an empty provider config to prevent crashes
+  const hasProviders = Object.keys(MODELPROVIDERS).length > 0;
+  if (!hasProviders) {
+    console.warn('No providers configured in environment variables');
+  }
+
+  const [chatType, setChatType] = useState<ModelProviderConfig>(() => {
+    const defaultProvider = DEFAULT_PROVIDER as string;
+    const firstProvider = Object.keys(MODELPROVIDERS)[0];
+    
+    return MODELPROVIDERS[defaultProvider as ProviderIdentifier] || 
+           (firstProvider ? MODELPROVIDERS[firstProvider as ProviderIdentifier] : {} as ModelProviderConfig);
+  });
   const [currentTheme, setCurrentTheme] = useState(THEMES.light);
 
   useEffect(() => {

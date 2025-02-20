@@ -18,6 +18,31 @@ export function Header() {
   } = useContext(AppContext)
   const styles = getStyles(theme)
 
+  const handleModelPress = () => {
+    console.log('Model Selection icon pressed')
+    if (handlePresentModalPress) {
+      handlePresentModalPress()
+    } else {
+      console.log('Model selection not available on this screen')
+    }
+  }
+
+  const handleDovePress = () => {
+    console.log('Dove icon pressed')
+  }
+
+  const handleClearPress = () => {
+    console.log('Clear Chat icon pressed')
+    if (clearChat) {
+      console.log('clearChat function exists')
+      clearChat()
+    } else {
+      console.log('Clear chat not available on this screen')
+    }
+  }
+
+  
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContent}>
@@ -25,7 +50,7 @@ export function Header() {
           style={styles.button}
           underlayColor={'transparent'}
           activeOpacity={0.6}
-          onPress={handlePresentModalPress}
+          onPress={handleModelPress}
         >
           <FontAwesome6
             name="boxes-stacked"
@@ -34,17 +59,24 @@ export function Header() {
           />
         </TouchableHighlight>
 
-        <FontAwesome6
-          name="dove"
-          size={APP_CONFIG.UI.SIZES.ICON.LARGE}
-          color={theme.textColor}
-        />
+        <TouchableHighlight
+          style={styles.button}
+          underlayColor={'transparent'}
+          activeOpacity={0.6}
+          onPress={handleDovePress}
+        >
+          <FontAwesome6
+            name="dove"
+            size={APP_CONFIG.UI.SIZES.ICON.LARGE}
+            color={theme.textColor}
+          />
+        </TouchableHighlight>
 
         <TouchableHighlight
           style={styles.button}
           underlayColor={'transparent'}
           activeOpacity={0.6}
-          onPress={clearChat}
+          onPress={handleClearPress}
         >
           <Ionicons
             name="add-circle-outline"

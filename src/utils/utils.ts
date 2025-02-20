@@ -1,5 +1,5 @@
 // filepath: src/utils/Utils.ts
-import { ChatMessage, ModelProviderConfig, ProviderIdentifier, DOMAIN, APP_CONFIG } from '../config';
+import { ChatMessage, ModelProviderConfig, ProviderIdentifier, DOMAIN, APP_CONFIG, MODELPROVIDERS } from '../config';
 import EventSource from 'react-native-sse';
 
 // =============== Error Handling ===============
@@ -95,20 +95,15 @@ export function validateMessages(messages: ChatMessage[]): MessageValidationErro
 
 // ===============  Provider Utilities ===============
 
-const MODEL_PROVIDER_MAP: Record<string, ProviderIdentifier> = {
-  'gpt': 'gpt',
-  'gemini': 'gemini',
-  'claude': 'claude'
-} as const;
-
 export function getChatType(type: ModelProviderConfig): ProviderIdentifier {
   const label = type.label.toLowerCase();
-
-  for (const [keyword, provider] of Object.entries(MODEL_PROVIDER_MAP)) {
-    if (label.includes(keyword)) return provider;
+  
+  // Check if the label is a valid provider identifier
+  if (Object.keys(MODELPROVIDERS).includes(label)) {
+    return label as ProviderIdentifier;
   }
 
-  const supportedModels = Object.keys(MODEL_PROVIDER_MAP);
+  const supportedModels = Object.keys(MODELPROVIDERS);
   throw new Error(APP_CONFIG.ERRORS.CONNECTION.INVALID_MODEL(type.label, supportedModels));
 }
 
