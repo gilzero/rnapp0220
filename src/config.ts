@@ -3,6 +3,29 @@ import { SetStateAction, Dispatch } from 'react'
 import { NumberProp } from 'react-native-svg'
 import { OpenAIIcon, AnthropicIcon, GeminiIcon } from './components/Icons'
 
+/* ---------- Types and Interfaces ---------- */
+export type MessageRole = 'user' | 'assistant' | 'system';
+
+export interface ChatMessage {
+  role: MessageRole;
+  content: string;
+  timestamp?: number;
+  model?: string;
+}
+
+export interface ChatState {
+  messages: ChatMessage[];
+  index: string;
+}
+
+export interface IconProps {
+  type?: string;
+  theme: Theme;
+  size?: NumberProp;
+  selected?: boolean;
+  [key: string]: any;
+}
+
 export namespace NetworkConfig {
   export type Timeouts = typeof APP_CONFIG.NETWORK.TIMEOUTS;
   export type Retry = typeof APP_CONFIG.NETWORK.RETRY;
@@ -22,23 +45,9 @@ export namespace ErrorConfig {
 }
 
 export type CacheConfig = typeof APP_CONFIG.CACHE;
-
 export type AppConfig = typeof APP_CONFIG;
 
-export type MessageRole = 'user' | 'assistant' | 'system';
-
-export interface ChatMessage {
-  role: MessageRole;
-  content: string;
-  timestamp?: number;
-  model?: string;
-}
-
-export interface ChatState {
-  messages: ChatMessage[];
-  index: string;
-}
-
+/* ---------- Providers ---------- */
 const PROVIDER_GPT = 'gpt' as const;
 const PROVIDER_CLAUDE = 'claude' as const;
 const PROVIDER_GEMINI = 'gemini' as const;
@@ -51,6 +60,82 @@ export interface ModelProviderConfig {
   displayName: string;
 }
 
+interface ProviderEnvConfig {
+  id: ProviderIdentifier;
+  displayName: string;
+  iconMappingKey: string;
+}
+
+const FALLBACK_PROVIDER_CONFIG: Record<string, ProviderEnvConfig> = {
+  [PROVIDER_GPT]: {
+    id: PROVIDER_GPT,
+    displayName: 'GPT',
+    iconMappingKey: 'openai'
+  }
+};
+
+const providersConfig: Record<string, ProviderEnvConfig> = (() => {
+  try {
+    const rawConfig = process.env['EXPO_PUBLIC_PROVIDERS'];
+    if (!rawConfig) {
+      console.warn('EXPO_PUBLIC_PROVIDERS is not defined, using fallback configuration');
+      return FALLBACK_PROVIDER_CONFIG;
+    }
+
+    const parsedConfig = JSON.parse(rawConfig);
+    
+    // Validate the parsed configuration
+    if (typeof parsedConfig !== 'object' || parsedConfig === null) {
+      throw new Error('EXPO_PUBLIC_PROVIDERS must be a valid JSON object');
+    }
+
+    // Add shape validation
+    Object.entries(parsedConfig).forEach(([key, config]: [string, any]) => {
+      if (!config.id || !config.displayName || !config.iconMappingKey) {
+        throw new Error(`Provider config for '${key}' is missing required fields: id, displayName, or iconMappingKey`);
+      }
+    });
+
+    return parsedConfig;
+  } catch (e) {
+    const error = e as Error;
+    console.error(
+      'Failed to parse EXPO_PUBLIC_PROVIDERS:',
+      '\nError:', error.message,
+      '\nRaw config:', process.env['EXPO_PUBLIC_PROVIDERS'],
+      '\nUsing fallback configuration'
+    );
+    return FALLBACK_PROVIDER_CONFIG;
+  }
+})();
+
+export const DEFAULT_PROVIDER = (() => {
+  const envDefaultProvider = process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'];
+  if (envDefaultProvider && Object.keys(providersConfig).includes(envDefaultProvider)) {
+    return envDefaultProvider as ProviderIdentifier;
+  }
+  console.warn(
+    `Invalid or undefined EXPO_PUBLIC_DEFAULT_PROVIDER: ${envDefaultProvider}. Falling back to default provider.`
+  );
+  return Object.keys(providersConfig)[0] as ProviderIdentifier || PROVIDER_GPT;
+})();
+
+const ICON_MAPPING = {
+  'openai': OpenAIIcon,
+  'anthropic': AnthropicIcon,
+  'gemini': GeminiIcon
+} as const;
+
+export const MODELPROVIDERS = Object.entries(providersConfig).reduce((acc, [key, config]) => {
+  acc[key as ProviderIdentifier] = {
+    label: key as ProviderIdentifier,
+    displayName: config.displayName,
+    icon: ICON_MAPPING[config.iconMappingKey as keyof typeof ICON_MAPPING] || null
+  };
+  return acc;
+}, {} as Record<ProviderIdentifier, ModelProviderConfig>);
+
+/* ---------- Themes ---------- */
 export interface Theme {
   name: string;
   backgroundColor: string;
@@ -76,6 +161,123 @@ export interface ThemeContext {
   setTheme: Dispatch<SetStateAction<typeof THEMES.light>>;
 }
 
+const COLORS = {
+  white: '#fff',
+  black: '#000',
+  gray: 'rgba(0, 0, 0, .5)',
+  lightWhite: 'rgba(255, 255, 255, .5)',
+  blueTint: '#0281ff',
+  lightPink: '#F7B5CD',
+  vercelGray: '#171717',
+  miamiDark: '#231F20',
+} as const;
+
+export const FONTS = {
+  'Geist-Regular': require('./assets/fonts/Geist-Regular.otf'),
+  'Geist-Light': require('./assets/fonts/Geist-Light.otf'),
+  'Geist-Bold': require('./assets/fonts/Geist-Bold.otf'),
+  'Geist-Medium': require('./assets/fonts/Geist-Medium.otf'),
+  'Geist-Black': require('./assets/fonts/Geist-Black.otf'),
+  'Geist-SemiBold': require('./assets/fonts/Geist-SemiBold.otf'),
+  'Geist-Thin': require('./assets/fonts/Geist-Thin.otf'),
+  'Geist-UltraLight': require('./assets/fonts/Geist-UltraLight.otf'),
+  'Geist-UltraBlack': require('./assets/fonts/Geist-UltraBlack.otf')
+} as const;
+
+const FONT_STYLES = {
+  regularFont: 'Geist-Regular',
+  lightFont: 'Geist-Light',
+  boldFont: 'Geist-Bold',
+  mediumFont: 'Geist-Medium',
+  blackFont: 'Geist-Black',
+  semiBoldFont: 'Geist-SemiBold',
+  thinFont: 'Geist-Thin',
+  ultraLightFont: 'Geist-UltraLight',
+  ultraBlackFont: 'Geist-UltraBlack',
+} as const;
+
+type BaseTheme = {
+  name: string;
+  label: string;
+  textColor: string;
+  secondaryTextColor: string;
+  mutedForegroundColor: string;
+  backgroundColor: string;
+  placeholderTextColor: string;
+  secondaryBackgroundColor: string;
+  borderColor: string;
+  tintColor: string;
+  tintTextColor: string;
+  tabBarActiveTintColor: string;
+  tabBarInactiveTintColor: string;
+} & typeof FONT_STYLES;
+
+type ThemeType = {
+  light: BaseTheme;
+  dark: BaseTheme;
+  miami: BaseTheme;
+  vercel: BaseTheme;
+};
+
+const DARK_THEME: BaseTheme = {
+  ...FONT_STYLES,
+  name: 'Dark',
+  label: 'dark',
+  textColor: COLORS.white,
+  secondaryTextColor: COLORS.black,
+  mutedForegroundColor: COLORS.lightWhite,
+  backgroundColor: COLORS.black,
+  placeholderTextColor: COLORS.lightWhite,
+  secondaryBackgroundColor: COLORS.white,
+  borderColor: 'rgba(255, 255, 255, .2)',
+  tintColor: COLORS.blueTint,
+  tintTextColor: COLORS.white,
+  tabBarActiveTintColor: COLORS.blueTint,
+  tabBarInactiveTintColor: COLORS.lightWhite,
+} as const;
+
+export const THEMES: ThemeType = {
+  light: {
+    ...FONT_STYLES,
+    name: 'Light',
+    label: 'light',
+    textColor: COLORS.black,
+    secondaryTextColor: COLORS.white,
+    mutedForegroundColor: COLORS.gray,
+    backgroundColor: COLORS.white,
+    placeholderTextColor: COLORS.gray,
+    secondaryBackgroundColor: COLORS.black,
+    borderColor: 'rgba(0, 0, 0, .15)',
+    tintColor: COLORS.blueTint,
+    tintTextColor: COLORS.white,
+    tabBarActiveTintColor: COLORS.black,
+    tabBarInactiveTintColor: COLORS.gray,
+  },
+  dark: DARK_THEME,
+  miami: {
+    ...FONT_STYLES,
+    ...DARK_THEME,
+    name: 'Miami',
+    label: 'miami',
+    backgroundColor: COLORS.miamiDark,
+    tintColor: COLORS.lightPink,
+    tintTextColor: COLORS.miamiDark,
+    tabBarActiveTintColor: COLORS.lightPink,
+  },
+  vercel: {
+    ...FONT_STYLES,
+    ...DARK_THEME,
+    name: 'Vercel',
+    label: 'vercel',
+    backgroundColor: COLORS.black,
+    tintColor: COLORS.vercelGray,
+    tintTextColor: COLORS.white,
+    tabBarActiveTintColor: COLORS.white,
+    tabBarInactiveTintColor: COLORS.lightWhite,
+  }
+} as const;
+
+/* ---------- Contexts ---------- */
 export interface AppContext {
   chatType: ModelProviderConfig;
   setChatType: Dispatch<SetStateAction<ModelProviderConfig>>;
@@ -85,14 +287,7 @@ export interface AppContext {
   clearChatRef: React.MutableRefObject<(() => void) | undefined>;
 }
 
-export interface IconProps {
-  type?: string;
-  theme: Theme;
-  size?: NumberProp;
-  selected?: boolean;
-  [key: string]: any;
-}
-
+/* ---------- Configuration ---------- */
 export const APP_CONFIG = {
   NETWORK: {
     TIMEOUTS: {
@@ -107,8 +302,8 @@ export const APP_CONFIG = {
       MAX_BACKOFF_MS: parseInt(process.env['EXPO_PUBLIC_MAX_RETRY_BACKOFF_MS'] || '5000'),
     },
     RATE_LIMITS: {
-      REQUESTS_PER_MINUTE: 60,
-      CONCURRENT_STREAMS: 3,
+      REQUESTS_PER_MINUTE: parseInt(process.env['EXPO_PUBLIC_REQUESTS_PER_MINUTE'] || '60'),
+      CONCURRENT_STREAMS: parseInt(process.env['EXPO_PUBLIC_CONCURRENT_STREAMS'] || '3'),
     },
   },
 
@@ -235,158 +430,7 @@ export const DOMAIN = process.env['EXPO_PUBLIC_ENV'] === 'DEVELOPMENT' ?
   process.env['EXPO_PUBLIC_DEV_API_URL'] :
   process.env['EXPO_PUBLIC_PROD_API_URL']
 
-interface ProviderEnvConfig {
-  id: ProviderIdentifier;
-  displayName: string;
-  iconMappingKey: string;
-}
-
-const providersConfig: Record<string, ProviderEnvConfig> = (() => {
-  try {
-    return JSON.parse(process.env['EXPO_PUBLIC_PROVIDERS'] || '{}');
-  } catch (e) {
-    console.error('Failed to parse EXPO_PUBLIC_PROVIDERS:', e);
-    return {};
-  }
-})();
-
-export const DEFAULT_PROVIDER = (
-  process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'] || 
-  Object.keys(providersConfig)[0] || 
-  PROVIDER_GPT
-) as ProviderIdentifier;
-
-const ICON_MAPPING = {
-  'openai': OpenAIIcon,
-  'anthropic': AnthropicIcon,
-  'gemini': GeminiIcon
-} as const;
-
-export const MODELPROVIDERS = Object.entries(providersConfig).reduce((acc, [key, config]) => {
-  acc[key as ProviderIdentifier] = {
-    label: key as ProviderIdentifier,
-    displayName: config.displayName,
-    icon: ICON_MAPPING[config.iconMappingKey as keyof typeof ICON_MAPPING] || null
-  };
-  return acc;
-}, {} as Record<ProviderIdentifier, ModelProviderConfig>);
-
-const COLORS = {
-  white: '#fff',
-  black: '#000',
-  gray: 'rgba(0, 0, 0, .5)',
-  lightWhite: 'rgba(255, 255, 255, .5)',
-  blueTint: '#0281ff',
-  lightPink: '#F7B5CD',
-  vercelGray: '#171717',
-  miamiDark: '#231F20',
-} as const;
-
-export const FONTS = {
-  'Geist-Regular': require('./assets/fonts/Geist-Regular.otf'),
-  'Geist-Light': require('./assets/fonts/Geist-Light.otf'),
-  'Geist-Bold': require('./assets/fonts/Geist-Bold.otf'),
-  'Geist-Medium': require('./assets/fonts/Geist-Medium.otf'),
-  'Geist-Black': require('./assets/fonts/Geist-Black.otf'),
-  'Geist-SemiBold': require('./assets/fonts/Geist-SemiBold.otf'),
-  'Geist-Thin': require('./assets/fonts/Geist-Thin.otf'),
-  'Geist-UltraLight': require('./assets/fonts/Geist-UltraLight.otf'),
-  'Geist-UltraBlack': require('./assets/fonts/Geist-UltraBlack.otf')
-} as const;
-
-const FONT_STYLES = {
-  regularFont: 'Geist-Regular',
-  lightFont: 'Geist-Light',
-  boldFont: 'Geist-Bold',
-  mediumFont: 'Geist-Medium',
-  blackFont: 'Geist-Black',
-  semiBoldFont: 'Geist-SemiBold',
-  thinFont: 'Geist-Thin',
-  ultraLightFont: 'Geist-UltraLight',
-  ultraBlackFont: 'Geist-UltraBlack',
-} as const;
-
-type BaseTheme = {
-  name: string;
-  label: string;
-  textColor: string;
-  secondaryTextColor: string;
-  mutedForegroundColor: string;
-  backgroundColor: string;
-  placeholderTextColor: string;
-  secondaryBackgroundColor: string;
-  borderColor: string;
-  tintColor: string;
-  tintTextColor: string;
-  tabBarActiveTintColor: string;
-  tabBarInactiveTintColor: string;
-} & typeof FONT_STYLES;
-
-type ThemeType = {
-  light: BaseTheme;
-  dark: BaseTheme;
-  miami: BaseTheme;
-  vercel: BaseTheme;
-};
-
-const DARK_THEME: BaseTheme = {
-  ...FONT_STYLES,
-  name: 'Dark',
-  label: 'dark',
-  textColor: COLORS.white,
-  secondaryTextColor: COLORS.black,
-  mutedForegroundColor: COLORS.lightWhite,
-  backgroundColor: COLORS.black,
-  placeholderTextColor: COLORS.lightWhite,
-  secondaryBackgroundColor: COLORS.white,
-  borderColor: 'rgba(255, 255, 255, .2)',
-  tintColor: COLORS.blueTint,
-  tintTextColor: COLORS.white,
-  tabBarActiveTintColor: COLORS.blueTint,
-  tabBarInactiveTintColor: COLORS.lightWhite,
-} as const;
-
-export const THEMES: ThemeType = {
-  light: {
-    ...FONT_STYLES,
-    name: 'Light',
-    label: 'light',
-    textColor: COLORS.black,
-    secondaryTextColor: COLORS.white,
-    mutedForegroundColor: COLORS.gray,
-    backgroundColor: COLORS.white,
-    placeholderTextColor: COLORS.gray,
-    secondaryBackgroundColor: COLORS.black,
-    borderColor: 'rgba(0, 0, 0, .15)',
-    tintColor: COLORS.blueTint,
-    tintTextColor: COLORS.white,
-    tabBarActiveTintColor: COLORS.black,
-    tabBarInactiveTintColor: COLORS.gray,
-  },
-  dark: DARK_THEME,
-  miami: {
-    ...FONT_STYLES,
-    ...DARK_THEME,
-    name: 'Miami',
-    label: 'miami',
-    backgroundColor: COLORS.miamiDark,
-    tintColor: COLORS.lightPink,
-    tintTextColor: COLORS.miamiDark,
-    tabBarActiveTintColor: COLORS.lightPink,
-  },
-  vercel: {
-    ...FONT_STYLES,
-    ...DARK_THEME,
-    name: 'Vercel',
-    label: 'vercel',
-    backgroundColor: COLORS.black,
-    tintColor: COLORS.vercelGray,
-    tintTextColor: COLORS.white,
-    tabBarActiveTintColor: COLORS.white,
-    tabBarInactiveTintColor: COLORS.lightWhite,
-  }
-} as const;
-
+/* ---------- Settings ---------- */
 export const MODEL_PARAMS = {
   TEMPERATURE: parseFloat(process.env['EXPO_PUBLIC_TEMPERATURE'] || '0.7'),
   MAX_TOKENS: parseInt(process.env['EXPO_PUBLIC_MAX_TOKENS'] || '2000', 10)
@@ -413,6 +457,7 @@ export const SETTINGS_CONFIG = {
   }
 } as const;
 
+/* ---------- UI Components ---------- */
 interface BottomSheetStyles {
   handleIndicator: {
     backgroundColor: string;
