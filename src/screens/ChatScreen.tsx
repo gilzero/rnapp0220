@@ -240,7 +240,7 @@ export function ChatScreen() {
         messages,
         {
           provider: chatType.label,
-          model: chatType.name,
+          temperature: 0.3,
           streaming: true
         },
         {

@@ -3,10 +3,6 @@
  * Implements bottom tab navigation, theme-aware toast notifications, and safe area handling.
  *
  * @filepath src/navigation/MainNavigator.tsx
- *
- * @see {@link ../App.tsx} for theme and app-wide state management
- * @see {@link ../screens/chat.tsx} for the main chat interface
- * @see {@link ../screens/settings.tsx} for the settings interface
  */
 
 import { useContext } from 'react';
