@@ -1,7 +1,7 @@
 /**
  * Contexts for theme and app-wide state management.
  * 
- * @filepath app/src/contexts/AppContexts.tsx
+ * @filepath src/contexts/AppContexts.tsx
  */
 import { createContext } from 'react'
 import { 

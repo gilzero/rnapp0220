@@ -1,5 +1,5 @@
 // @fileoverview: chat service for the app
-// @filepath: app/src/services.ts
+// @filepath: src/services.ts
 
 /**
  * DEV NOTE: Chat Implementation Strategy

@@ -1,17 +1,6 @@
-/**
- * @fileoverview Settings screen component that allows users to select and configure AI chat models.
- * Provides a UI for switching between different AI providers (GPT, Claude, Gemini) and manages model selection state.
- * 
- * @filepath app/src/screens/SettingsScreen.tsx
- * 
- * This file contains the Settings component that allows users to:
- * - Select and switch between different AI chat models
- * - Configure advanced settings such as temperature, max tokens, and stream response
- * - Change the current theme of the application
- */
-
+// filepath: src/screens/SettingsScreen.tsx
 import React, { useContext, useState, useRef, useCallback } from 'react'
-import { 
+import {
   View,
   Text,
   StyleSheet,
@@ -32,7 +21,6 @@ import { ThemeContext, AppContext } from '../contexts'
 import { AnthropicIcon, OpenAIIcon, GeminiIcon } from '../components'
 import { IconProps, MODELS, THEMES, SETTINGS_CONFIG, APP_CONFIG } from '../config'
 
-/** Array of available AI models from constants */
 const models = Object.values(MODELS)
 const themes = [
   { name: 'Be Water', theme: THEMES.light },
@@ -77,11 +65,6 @@ type SettingsStyles = {
   doneButtonText: any;
 }
 
-/**
- * Settings component that provides model selection interface.
- * Allows users to switch between different AI providers and displays current selection.
- * @component
- */
 export function SettingsScreen() {
   const { theme, setTheme } = useContext(ThemeContext)
   const { chatType, setChatType, clearChatRef } = useContext(AppContext)
@@ -94,28 +77,24 @@ export function SettingsScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current
   const rotateAnim = useRef(new Animated.Value(0)).current
   const lastPullY = useRef(0)
-  const pullThreshold = 80 // Reduced threshold for better UX
+  const pullThreshold = 80
   const navigation = useNavigation()
 
   const currentThemeName = themes.find(t => t.theme === theme)?.name || 'Light'
 
   const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y
-    
-    // Only track pulls when at the top of the scroll view
+
     if (y <= 0) {
       const pull = Math.abs(y)
       pullDistance.setValue(pull)
       lastPullY.current = pull
-      
-      // Show hidden settings if pulled down more than threshold
+
       if (pull > pullThreshold && !showHiddenSettings) {
         setShowHiddenSettings(true)
-        // Provide haptic feedback
         Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success
         )
-        // Start fade-in and rotate animations
         Animated.parallel([
           Animated.timing(fadeAnim, {
             toValue: 1,
@@ -133,7 +112,6 @@ export function SettingsScreen() {
   }, [showHiddenSettings, fadeAnim, rotateAnim])
 
   const handleScrollEnd = useCallback(() => {
-    // Smoother spring animation
     Animated.spring(pullDistance, {
       toValue: 0,
       useNativeDriver: true,
@@ -144,9 +122,7 @@ export function SettingsScreen() {
 
   const toggleHiddenSettings = useCallback(() => {
     setShowHiddenSettings(prev => !prev)
-    // Provide haptic feedback
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    // Animate fade and rotation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: showHiddenSettings ? 0 : 1,
@@ -166,12 +142,7 @@ export function SettingsScreen() {
     outputRange: ['0deg', '180deg']
   })
 
-  /**
-   * Handles chat model selection with confirmation dialog
-   * @param newModel - The selected chat model
-   */
   function handleModelSelect(newModel: typeof MODELS[keyof typeof MODELS]) {
-    // Don't show dialog if selecting the same model
     if (newModel.label === chatType.label) {
       return
     }
@@ -206,18 +177,11 @@ export function SettingsScreen() {
     )
   }
 
-  /**
-   * Renders the appropriate icon component based on the AI model type
-   * @param {IconProps} props - Icon properties including type and style props
-   * @returns {React.ReactElement} The corresponding icon component for the AI model
-   */
   function renderIcon(props: IconProps): React.ReactElement | null {
     const { type, size, theme, selected } = props
-    
-    // Add type guard to ensure type is defined
+
     if (!type) return null;
-    
-    // Convert size to number if it's a string
+
     const iconSize = typeof size === 'string' ? parseInt(size, 10) : size;
     if (type.includes('gpt')) {
       return <OpenAIIcon size={iconSize ?? 0} theme={theme} selected={selected || false} />
@@ -261,7 +225,7 @@ export function SettingsScreen() {
                 </Animated.View>
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles['settingRow']}>
               <Text style={styles['hiddenSettingLabel']}>Temperature: {temperature.toFixed(2)}</Text>
               <Text style={styles['hiddenSettingDescription']}>
@@ -315,7 +279,7 @@ export function SettingsScreen() {
                 onPress={() => handleModelSelect(model)}
               >
                 <View
-                  style={{...styles['chatChoiceButton'], ...getDynamicViewStyle({ baseType: chatType.label, type: model.label, theme } as DynamicStyleProps)}}
+                  style={{ ...styles['chatChoiceButton'], ...getDynamicViewStyle({ baseType: chatType.label, type: model.label, theme } as DynamicStyleProps) }}
                 >
                   {renderIcon({
                     theme,
@@ -324,7 +288,7 @@ export function SettingsScreen() {
                     selected: chatType.label === model.label || false
                   })}
                   <Text
-                    style={{...styles['chatTypeText'], ...getDynamicTextStyle({ baseType: chatType.label, type: model.label, theme } as DynamicStyleProps)}}
+                    style={{ ...styles['chatTypeText'], ...getDynamicTextStyle({ baseType: chatType.label, type: model.label, theme } as DynamicStyleProps) }}
                   >
                     {model.displayName}
                   </Text>
@@ -349,20 +313,20 @@ export function SettingsScreen() {
               <View
                 style={{
                   ...styles['chatChoiceButton'],
-                  ...getDynamicViewStyle({ 
-                    baseType: currentThemeName, 
-                    type: themeOption.name, 
-                    theme 
+                  ...getDynamicViewStyle({
+                    baseType: currentThemeName,
+                    type: themeOption.name,
+                    theme
                   } as DynamicStyleProps)
                 }}
               >
                 <Text
                   style={{
                     ...styles['chatTypeText'],
-                    ...getDynamicTextStyle({ 
-                      baseType: currentThemeName, 
-                      type: themeOption.name, 
-                      theme 
+                    ...getDynamicTextStyle({
+                      baseType: currentThemeName,
+                      type: themeOption.name,
+                      theme
                     } as DynamicStyleProps)
                   }}
                 >
@@ -375,7 +339,7 @@ export function SettingsScreen() {
       </View>
 
       <View style={styles['sectionContainer']}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles['doneButton']}
           onPress={() => navigation.goBack()}
         >
@@ -386,11 +350,6 @@ export function SettingsScreen() {
   )
 }
 
-/**
- * Generates dynamic text styles based on selection state
- * @param {DynamicStyleProps} props - Object containing baseType, type, and theme
- * @returns {object} Dynamic text style object
- */
 function getDynamicTextStyle({ baseType, type, theme }: DynamicStyleProps): StyleObject {
   if (type === baseType) {
     return {
@@ -399,11 +358,6 @@ function getDynamicTextStyle({ baseType, type, theme }: DynamicStyleProps): Styl
   } else return {}
 }
 
-/**
- * Generates dynamic view styles based on selection state
- * @param {DynamicStyleProps} props - Object containing baseType, type, and theme
- * @returns {object} Dynamic view style object
- */
 function getDynamicViewStyle({ baseType, type, theme }: DynamicStyleProps): StyleObject {
   if (type === baseType) {
     return {
@@ -412,11 +366,6 @@ function getDynamicViewStyle({ baseType, type, theme }: DynamicStyleProps): Styl
   } else return {}
 }
 
-/**
- * Generates component styles based on current theme
- * @param {IThemeContext['theme']} theme - Current theme object containing colors and fonts
- * @returns {StyleSheet} StyleSheet object with component styles
- */
 const getStyles = (theme: typeof THEMES.light): ReturnType<typeof StyleSheet.create> => StyleSheet.create({
   contentContainer: {
     paddingBottom: 50

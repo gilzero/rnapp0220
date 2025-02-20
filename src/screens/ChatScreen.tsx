@@ -1,26 +1,4 @@
-/**
- * @fileoverview Main chat screen component that handles real-time messaging with AI models
- * @filepath app/src/screens/ChatScreen.tsx
- * 
- * Supports streaming responses, message history, and UI interactions like copying and clearing chat
- *
- * DEV NOTE: Streaming Implementation
- * 
- * This component is designed to exclusively use streaming for chat interactions.
- * We enforce streaming mode (streaming: true) in all chat calls as it provides:
- * - Immediate response feedback through token-by-token updates
- * - Smooth UI transitions with typing indicators
- * - Better user engagement through real-time message building
- * 
- * The component includes dedicated handling for streaming responses:
- * - responseMap for managing streaming message state
- * - Real-time token processing via onToken callback
- * - Connection status management and error handling
- * 
- * Non-streaming implementation is intentionally omitted as streaming is our
- * preferred approach for optimal user experience.
- */
-
+// filepath: src/screens/ChatScreen.tsx
 import React, { useEffect, useCallback, useContext, useState, useRef } from 'react';
 import { 
   View, 
@@ -49,54 +27,32 @@ import { chatService } from '../services';
 import { ChatError, validateMessage, getFirstNCharsOrLess } from '../utils';
 import { ChatMessage as ChatMessageComponent, ChatInput, TypingIndicator } from '../components/ChatUI';
 
-/**
- * Main Chat component that provides the chat interface and handles messaging logic.
- * Manages the chat state, handles user input, and coordinates with AI models for responses.
- * @component
- */
 export function ChatScreen() {
-  // State Management
-  /** Controls loading state during AI responses */
   const [loading, setLoading] = useState<boolean>(false)
-  /** Manages current user input text */
   const [input, setInput] = useState<string>('')
-  /** Tracks whether any chat messages have been made */
   const [callMade, setCallMade] = useState<boolean>(false)
-  /** Maintains chat history and session information */
   const [chatState, setChatState] = useState<ChatState>({
     messages: [],
     index: uuid()
   })
-  /** Tracks the current connection status */
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'reconnecting' | null>(null)
-  /** Animation value for fade transition */
   const fadeAnim = useRef(new Animated.Value(1)).current
-  /** Animation value for input loading */
   const inputOpacity = useRef(new Animated.Value(1)).current
-  /** Controls typing indicator dots animation */
   const typingDots = useRef<Animated.Value[]>([
     new Animated.Value(0),
     new Animated.Value(0),
     new Animated.Value(0)
   ]).current;
 
-  // Refs and Hooks
-  /** Reference for auto-scrolling the chat view */
   const scrollViewRef = useRef<ScrollView | null>(null)
   const { showActionSheetWithOptions } = useActionSheet()
-  /** Animation value for general button scaling */
   const buttonScale = useRef(new Animated.Value(1)).current
-  /** Animation value specific to send button scaling */
   const sendButtonScale = useRef(new Animated.Value(1)).current
 
-  // Context
   const { theme } = useContext(ThemeContext)
   const { chatType, clearChatRef } = useContext(AppContext)
   const styles = getStyles(theme)
 
-  /**
-   * Sets up the clear chat functionality through the ref passed from parent
-   */
   useEffect(() => {
     if (clearChatRef) {
       clearChatRef.current = handleClearChat
@@ -108,14 +64,9 @@ export function ChatScreen() {
     }
   }, [])
 
-  /**
-   * Clears the entire chat history and resets input
-   * Prevents clearing during active loading state
-   */
   function handleClearChat() {
     if (loading) return
     
-    // Start fade out animation
     Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -132,7 +83,6 @@ export function ChatScreen() {
       })
     ]).start()
 
-    // Reset state after slight delay to sync with animation
     setTimeout(() => {
       setChatState({
         messages: [],
@@ -143,10 +93,6 @@ export function ChatScreen() {
     }, 200)
   }
 
-  /**
-   * Handles button press animation
-   * @param scale - Animated value to control the scaling effect
-   */
   const animateButton = (scale: Animated.Value) => {
     Animated.sequence([
       Animated.timing(scale, {
@@ -164,10 +110,6 @@ export function ChatScreen() {
     ]).start()
   }
 
-  /**
-   * Shows error toast message with appropriate styling based on error type
-   * @param error - Error object from chat service
-   */
   const showErrorToast = (error: ChatError) => {
     const errorMessages: Record<string, string> = {
       'PARSE_ERROR': 'Failed to process AI response',
@@ -186,10 +128,6 @@ export function ChatScreen() {
     });
   };
 
-  /**
-   * Shows connection status toast message
-   * @param status - Current connection status
-   */
   const showConnectionToast = (status: 'connecting' | 'connected' | 'disconnected' | 'reconnecting') => {
     const statusMessages: Record<string, { text1: string; text2: string; type: string }> = {
       'connecting': {
@@ -226,12 +164,6 @@ export function ChatScreen() {
     }
   };
 
-  /**
-   * Extract message validation logic
-   * @param input - User input text
-   * @param chatState - Current chat state
-   * @returns - Validated message and all messages
-   */
   const validateAndPrepareMessage = (input: string, chatState: ChatState) => {
     const messages = [...chatState.messages, {
       role: 'user' as const,
@@ -239,16 +171,12 @@ export function ChatScreen() {
       timestamp: Date.now()
     }];
 
-    const newMessage = messages[messages.length - 1]!;  // Add non-null assertion
-    validateMessage(newMessage);  // Validate new message
+    const newMessage = messages[messages.length - 1]!;
+    validateMessage(newMessage);
 
     return messages;
   };
 
-  /**
-   * Handles input loading animation
-   * @param isLoading - Boolean indicating whether input is loading
-   */
   const animateInputLoading = (isLoading: boolean) => {
     Animated.timing(inputOpacity, {
       toValue: isLoading ? 0.5 : 1,
@@ -257,9 +185,6 @@ export function ChatScreen() {
     }).start();
   };
 
-  /**
-   * Animates the typing indicator dots in sequence
-   */
   const animateTypingDots = () => {
     const createDotAnimation = (dot: Animated.Value) => {
       return Animated.sequence([
@@ -285,19 +210,11 @@ export function ChatScreen() {
     ).start();
   };
 
-  /**
-   * Main chat handling function that:
-   * 1. Processes user input
-   * 2. Updates chat state
-   * 3. Manages streaming response from AI
-   * 4. Handles UI updates during streaming
-   */
   async function chat() {
     if (!input.trim()) return
     animateButton(sendButtonScale)
     Keyboard.dismiss()
 
-    // Set callMade to true when starting a new chat
     if (!callMade) {
       setCallMade(true)
     }
@@ -310,40 +227,32 @@ export function ChatScreen() {
         messages
       }));
 
-      // Scroll to bottom after user message using the native scroll behavior
       scrollToBottom()
 
       setLoading(true)
       setInput('')
       animateInputLoading(true)
-      animateTypingDots() // Start typing animation
+      animateTypingDots()
 
-      // responseMap maintains the state of streaming responses for each message
-      // This allows for efficient updates without re-rendering the entire message list
-      // Each messageId maps to its accumulated content as tokens arrive
       const responseMap = new Map<string, string>();
 
-      await chatService.streamChat( // Use the streaming chat method
+      await chatService.streamChat(
         messages,
         {
           provider: chatType.label,
           model: chatType.name,
-          streaming: true // Always set to true for streaming response (no toggle for now)
+          streaming: true
         },
         {
-          // Handle incoming tokens from the streaming response
           onToken: (token, messageId) => {
-            // Accumulate tokens for the current message
             const currentContent = responseMap.get(messageId) || '';
             const newContent = currentContent + token;
             responseMap.set(messageId, newContent);
 
-            // Update the chat state with the new content
             setChatState(prev => {
               const messages = [...prev.messages];
               const lastMessage = messages[messages.length - 1];
               
-              // Update existing assistant message or create new one
               if (lastMessage?.role === 'assistant') {
                 messages[messages.length - 1] = {
                   ...lastMessage,
@@ -364,7 +273,6 @@ export function ChatScreen() {
               };
             });
 
-            // Use requestAnimationFrame for smooth scrolling during streaming
             requestAnimationFrame(scrollToBottom);
           },
           onError: (error) => {
@@ -380,7 +288,6 @@ export function ChatScreen() {
           onComplete: () => {
             setLoading(false)
             animateInputLoading(false)
-            // Final scroll using the native scroll behavior
             scrollToBottom()
           },
           onConnectionStatus: (status) => {
@@ -403,10 +310,6 @@ export function ChatScreen() {
     }
   }
 
-  /**
-   * Handles scrolling to the bottom of the chat
-   * Uses native scroll behavior for smooth animation
-   */
   const scrollToBottom = () => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
@@ -421,18 +324,10 @@ export function ChatScreen() {
     />
   ), [theme, showClipboardActionsheet]);
 
-  /**
-   * Copies given text to clipboard
-   * @param text - Text to copy
-   */
   async function copyToClipboard(text: string) {
     await Clipboard.setStringAsync(text)
   }
 
-  /**
-   * Shows action sheet with options to copy text or clear chat
-   * @param text - Text to copy if copy option is selected
-   */
   async function showClipboardActionsheet(text: string) {
     const cancelButtonIndex = 2
     showActionSheetWithOptions({
@@ -562,11 +457,6 @@ export function ChatScreen() {
   )
 }
 
-/**
- * Generates styles for the chat component based on the current theme
- * @param theme - Current theme object containing color and font information
- * @returns StyleSheet object with all component styles
- */
 const getStyles = (theme: any) => StyleSheet.create({
   container: {
     backgroundColor: theme.backgroundColor,

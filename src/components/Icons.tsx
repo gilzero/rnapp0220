@@ -1,4 +1,4 @@
-// filepath: app/src/components/Icons.tsx
+// filepath: src/components/Icons.tsx
 import React from 'react';
 import Svg, { Path, G } from 'react-native-svg';
 import { IconProps, Theme } from '../config';

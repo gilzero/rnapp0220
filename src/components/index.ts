@@ -1,6 +1,6 @@
 /**
  * @fileoverview Central export point for all components
- * @filepath app/src/components/index.ts
+ * @filepath src/components/index.ts
  */
 
 export * from './Icons'

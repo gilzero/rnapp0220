@@ -1,4 +1,4 @@
-// filepath: app/src/components/ErrorBoundary.tsx
+// filepath: src/components/ErrorBoundary.tsx
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { THEMES, APP_CONFIG } from '../config';

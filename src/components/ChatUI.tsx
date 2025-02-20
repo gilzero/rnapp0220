@@ -1,4 +1,4 @@
-// filepath: app/src/components/ChatUI.tsx
+// filepath: src/components/ChatUI.tsx
 // file description: chat input and message components
 import React, { memo } from 'react';
 import { View, TextInput, TouchableHighlight, StyleSheet, Animated, ActivityIndicator, Text } from 'react-native';

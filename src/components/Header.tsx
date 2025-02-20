@@ -1,7 +1,7 @@
 /**
  * Application header component with navigation and action buttons.
  * 
- * @filepath app/src/components/Header.tsx
+ * @filepath src/components/Header.tsx
  */
 import { StyleSheet, View, TouchableHighlight } from 'react-native';
 import { useContext } from 'react';

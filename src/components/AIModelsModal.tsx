@@ -1,5 +1,5 @@
 /**
- * // filepath: app/src/components/AIModelsModal.tsx
+ * // filepath: src/components/AIModelsModal.tsx
  * 
  * Modal component for selecting AI chat models.
  * Provides a bottom sheet interface for switching between different AI providers.

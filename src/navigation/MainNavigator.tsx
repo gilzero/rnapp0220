@@ -2,7 +2,7 @@
  * @fileoverview Main navigation component that sets up the navigation structure and global UI elements.
  * Implements bottom tab navigation, theme-aware toast notifications, and safe area handling.
  *
- * @filepath app/src/navigation/AppNavigator.tsx
+ * @filepath src/navigation/AppNavigator.tsx
  *
  * @see {@link ../App.tsx} for theme and app-wide state management
  * @see {@link ../screens/chat.tsx} for the main chat interface

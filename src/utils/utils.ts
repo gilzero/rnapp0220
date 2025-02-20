@@ -3,7 +3,7 @@
  * This module provides essential functionality for managing chat messages, establishing SSE
  * connections, and handling different model providers in the chat application.
  * 
- * @filepath app/src/utils/utils.ts
+ * @filepath src/utils/utils.ts
  */
 
 import { ChatMessage, Model, ModelProvider, DOMAIN, APP_CONFIG } from '../config';
