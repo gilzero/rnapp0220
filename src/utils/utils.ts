@@ -6,7 +6,7 @@
  * @filepath src/utils/utils.ts
  */
 
-import { ChatMessage, Model, ModelProvider, DOMAIN, APP_CONFIG } from '../config';
+import { ChatMessage, ModelProviderConfig, ProviderIdentifier, DOMAIN, APP_CONFIG } from '../config';
 import EventSource from 'react-native-sse';
 
 // =============== Error Handling ===============
@@ -137,12 +137,12 @@ export function validateMessages(messages: ChatMessage[]): MessageValidationErro
   return null;
 }
 
-// =============== Model Provider Utilities ===============
+// ===============  Provider Utilities ===============
 
 /**
  * Mapping of model keywords to their respective providers.
  */
-const MODEL_PROVIDER_MAP: Record<string, ModelProvider> = {
+const MODEL_PROVIDER_MAP: Record<string, ProviderIdentifier> = {
   'gpt': 'gpt',
   'gemini': 'gemini',
   'claude': 'claude'
@@ -151,11 +151,11 @@ const MODEL_PROVIDER_MAP: Record<string, ModelProvider> = {
 /**
  * Determines the chat provider type based on the model label.
  * 
- * @param type - Model configuration object
+ * @param type -  configuration object
  * @returns The determined model provider
  * @throws Error if the model type is not supported
  */
-export function getChatType(type: Model): ModelProvider {
+export function getChatType(type: ModelProviderConfig): ProviderIdentifier {
   const label = type.label.toLowerCase();
   
   for (const [keyword, provider] of Object.entries(MODEL_PROVIDER_MAP)) {

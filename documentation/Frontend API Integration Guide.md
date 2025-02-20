@@ -42,7 +42,7 @@ Where `{provider}` can be:
 ```
 
 - `messages`: Array of message objects representing the conversation history
-- `model`: Model identifier string (e.g., "gpt-4o", "claude-3-5-sonnet-latest", "gemini-2.0-flash")
+- `model`:  identifier string (e.g., "gpt-4o", "claude-3-5-sonnet-latest", "gemini-2.0-flash")
 
 ##### Response
 
@@ -152,7 +152,7 @@ Rate limit response (429 Too Many Requests):
 }
 ```
 
-## Model Configuration
+##  Configuration
 
 Each provider must support at least two models:
 - Default model

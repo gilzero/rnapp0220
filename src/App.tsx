@@ -31,7 +31,7 @@ import { BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, Bottom
 import { useFonts } from 'expo-font';
 
 import { MainNavigator } from './navigation';
-import { Model, MODELPROVIDERS, THEMES, FONTS, getBottomSheetStyles, APP_CONFIG, DEFAULT_PROVIDER, ModelProvider } from './config';
+import { ModelProviderConfig, MODELPROVIDERS, THEMES, FONTS, getBottomSheetStyles, APP_CONFIG, DEFAULT_PROVIDER, ProviderIdentifier } from './config';
 import { ProvidersModal } from './components/index';
 import { ThemeContext, AppContext } from './contexts';
 import { ErrorBoundary } from './components';
@@ -46,8 +46,8 @@ SplashScreen.preventAutoHideAsync()
  * @returns {Object} - An object containing chatType, setChatType, currentTheme, and setCurrentTheme
  */
 const useAppConfiguration = () => {
-  const defaultProvider = DEFAULT_PROVIDER as ModelProvider;
-  const [chatType, setChatType] = useState<Model>(MODELPROVIDERS[defaultProvider] || MODELPROVIDERS.gpt);
+  const defaultProvider = DEFAULT_PROVIDER as ProviderIdentifier;
+  const [chatType, setChatType] = useState<ModelProviderConfig>(MODELPROVIDERS[defaultProvider] || MODELPROVIDERS.gpt);
   const [currentTheme, setCurrentTheme] = useState(THEMES.light);
   
   useEffect(() => {
@@ -126,9 +126,9 @@ const App: React.FC = () => {
    * Updates the selected chat model and persists the selection.
    * Handles both direct model updates and state updater functions.
    * 
-   * @param {SetStateAction<Model>} type - New model selection or update function
+   * @param {SetStateAction<ModelProviderConfig>} type - New model selection or update function
    */
-  function _setChatType(type: SetStateAction<Model>) {
+  function _setChatType(type: SetStateAction<ModelProviderConfig>) {
     setChatType(type)
     if (type instanceof Function) return
     AsyncStorage.setItem(STORAGE_KEYS.CHAT_TYPE, JSON.stringify(type))

@@ -8,7 +8,7 @@
 import { useContext } from 'react'
 import { View, Text, StyleSheet, TouchableHighlight, Alert } from 'react-native'
 import { ThemeContext, AppContext } from '../contexts'
-import { MODELPROVIDERS, Model, THEMES, APP_CONFIG } from '../config'
+import { MODELPROVIDERS, ModelProviderConfig, THEMES, APP_CONFIG } from '../config'
 
 interface ProvidersModalProps {
   handlePresentModalPress: () => void;
@@ -20,7 +20,7 @@ export function ProvidersModal({ handlePresentModalPress }: ProvidersModalProps)
   const styles = getStyles(theme)
   const options = Object.values(MODELPROVIDERS)
 
-  function _setChatType(newModel: Model) {
+  function _setChatType(newModel: ModelProviderConfig) {
     // Don't show dialog if selecting the same model
     if (newModel.label === chatType.label) {
       handlePresentModalPress()

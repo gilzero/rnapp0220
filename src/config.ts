@@ -43,10 +43,10 @@ const PROVIDER_GPT = 'gpt' as const;
 const PROVIDER_CLAUDE = 'claude' as const;
 const PROVIDER_GEMINI = 'gemini' as const;
 
-export type ModelProvider = typeof PROVIDER_GPT | typeof PROVIDER_CLAUDE | typeof PROVIDER_GEMINI;
+export type ProviderIdentifier = typeof PROVIDER_GPT | typeof PROVIDER_CLAUDE | typeof PROVIDER_GEMINI;
 
-export interface Model {
-  label: ModelProvider;
+export interface ModelProviderConfig {
+  label: ProviderIdentifier;
   icon: React.ComponentType<any> | null;
   displayName: string;
 }
@@ -77,8 +77,8 @@ export interface ThemeContext {
 }
 
 export interface AppContext {
-  chatType: Model;
-  setChatType: Dispatch<SetStateAction<Model>>;
+  chatType: ModelProviderConfig;
+  setChatType: Dispatch<SetStateAction<ModelProviderConfig>>;
   handlePresentModalPress: () => void;
   closeModal: () => void;
   clearChat: () => void;
@@ -236,14 +236,14 @@ export const DOMAIN = process.env['EXPO_PUBLIC_ENV'] === 'DEVELOPMENT' ?
   process.env['EXPO_PUBLIC_PROD_API_URL']
 
 function createProvider(
-  label: ModelProvider, 
+  label: ProviderIdentifier, 
   displayName: string, 
   icon: React.ComponentType<any>
-): Model {
+): ModelProviderConfig {
   return { label, icon, displayName }
 }
 
-export const DEFAULT_PROVIDER = (process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'] || PROVIDER_GPT) as ModelProvider;
+export const DEFAULT_PROVIDER = (process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'] || PROVIDER_GPT) as ProviderIdentifier;
 
 export const PROVIDERS = {
   GPT: (process.env['EXPO_PUBLIC_PROVIDER_GPT'] || PROVIDER_GPT) as typeof PROVIDER_GPT,
@@ -267,7 +267,7 @@ export const MODELPROVIDERS = {
     'Gemini',
     GeminiIcon
   )
-} as Record<ModelProvider, Model>;
+} as Record<ProviderIdentifier, ModelProviderConfig>;
 
 const COLORS = {
   white: '#fff',

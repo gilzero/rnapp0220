@@ -12,11 +12,11 @@
  * - Smoother UI updates
  */
 import EventSource from 'react-native-sse';
-import { ChatMessage, ModelProvider, DOMAIN, APP_CONFIG } from "../config";
+import { ChatMessage, ProviderIdentifier, DOMAIN, APP_CONFIG } from "../config";
 import { createSSEConnection, ChatError } from '../utils';
 
 export interface ChatOptions {
-  provider: ModelProvider;
+  provider: ProviderIdentifier;
   temperature?: number;
   streaming?: boolean;
 }
