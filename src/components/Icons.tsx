@@ -1,9 +1,7 @@
-// filepath: src/components/Icons.tsx
 import React from 'react';
 import Svg, { Path, G } from 'react-native-svg';
 import { IconProps, Theme } from '../config';
 
-// Define a default theme value for the Icon component
 const defaultTheme: Theme = {
   name: 'light',
   backgroundColor: '#fff',
@@ -23,19 +21,6 @@ const defaultTheme: Theme = {
   lightFont: 'Geist-Light'
 };
 
-/**
- * Icon components for the application.
- * Includes model-specific icons and generic app icons.
- * 
- * @see {@link ../../constants.ts} for theme types
- * @see {@link ../../config.ts} for icon props
- */
-
-/**
- * Main application logo/icon component
- * @param size - Icon size in pixels (default: 100)
- * @param fill - Icon fill color (default: 'black')
- */
 export function AppIcon({
   size = 100,
   fill = 'black',
@@ -59,18 +44,6 @@ export function AppIcon({
   )
 }
 
-/**
- * AI Model Provider Icons
- * These icons are used to represent different AI model providers in the UI
- */
-
-
-/**
- * OpenAI's GPT model icon
- * @param size - Icon size in pixels (default: 24)
- * @param theme - Current theme object for colors
- * @param selected - Whether the icon is in selected state
- */
 export function OpenAIIcon({
   size = 24,
   theme,
@@ -93,12 +66,6 @@ export function OpenAIIcon({
   )
 }
 
-/**
- * Anthropic's Claude model icon
- * @param size - Icon size in pixels (default: 24)
- * @param theme - Current theme object for colors
- * @param selected - Whether the icon is in selected state
- */
 export function AnthropicIcon({
   size = 24,
   theme,
@@ -121,12 +88,6 @@ export function AnthropicIcon({
   )
 }
 
-/**
- * Google's Gemini model icon
- * @param size - Icon size in pixels (default: 24)
- * @param theme - Current theme object for colors
- * @param selected - Whether the icon is in selected state
- */
 export function GeminiIcon({
   size = 24,
   theme,

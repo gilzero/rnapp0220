@@ -1,5 +1,5 @@
 /**
- * // filepath: src/components/AIModelsModal.tsx
+ * // filepath: src/components/ProvidersModal.tsx
  * 
  * Modal component for selecting AI chat models.
  * Provides a bottom sheet interface for switching between different AI providers.
@@ -8,17 +8,17 @@
 import { useContext } from 'react'
 import { View, Text, StyleSheet, TouchableHighlight, Alert } from 'react-native'
 import { ThemeContext, AppContext } from '../contexts'
-import { MODELS, Model, THEMES, APP_CONFIG } from '../config'
+import { MODELPROVIDERS, Model, THEMES, APP_CONFIG } from '../config'
 
-interface AIModelsModalProps {
+interface ProvidersModalProps {
   handlePresentModalPress: () => void;
 }
 
-export function AIModelsModal({ handlePresentModalPress }: AIModelsModalProps) {
+export function ProvidersModal({ handlePresentModalPress }: ProvidersModalProps) {
   const { theme } = useContext(ThemeContext)
   const { setChatType, chatType, clearChatRef } = useContext(AppContext)
   const styles = getStyles(theme)
-  const options = Object.values(MODELS)
+  const options = Object.values(MODELPROVIDERS)
 
   function _setChatType(newModel: Model) {
     // Don't show dialog if selecting the same model

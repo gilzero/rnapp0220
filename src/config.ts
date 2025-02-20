@@ -39,32 +39,11 @@ export interface ChatState {
   index: string;
 }
 
-export namespace OpenAI {
-  export interface UserHistory {
-    user: string;
-    assistant: string;
-    fileIds?: string[];
-  }
+const PROVIDER_GPT = 'gpt' as const;
+const PROVIDER_CLAUDE = 'claude' as const;
+const PROVIDER_GEMINI = 'gemini' as const;
 
-  export interface StateWithIndex {
-    messages: Array<{
-      user: string;
-      assistant: string;
-    }>;
-    index: string;
-  }
-
-  export interface Message {
-    role: MessageRole;
-    content: string;
-  }
-}
-
-const GPT_PROVIDER = 'gpt' as const;
-const CLAUDE_PROVIDER = 'claude' as const;
-const GEMINI_PROVIDER = 'gemini' as const;
-
-export type ModelProvider = typeof GPT_PROVIDER | typeof CLAUDE_PROVIDER | typeof GEMINI_PROVIDER;
+export type ModelProvider = typeof PROVIDER_GPT | typeof PROVIDER_CLAUDE | typeof PROVIDER_GEMINI;
 
 export interface Model {
   label: ModelProvider;
@@ -256,7 +235,7 @@ export const DOMAIN = process.env['EXPO_PUBLIC_ENV'] === 'DEVELOPMENT' ?
   process.env['EXPO_PUBLIC_DEV_API_URL'] :
   process.env['EXPO_PUBLIC_PROD_API_URL']
 
-function createModel(
+function createProvider(
   label: ModelProvider, 
   displayName: string, 
   icon: React.ComponentType<any>
@@ -264,27 +243,27 @@ function createModel(
   return { label, icon, displayName }
 }
 
-export const DEFAULT_PROVIDER = (process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'] || GPT_PROVIDER) as ModelProvider;
+export const DEFAULT_PROVIDER = (process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'] || PROVIDER_GPT) as ModelProvider;
 
 export const PROVIDERS = {
-  GPT: (process.env['EXPO_PUBLIC_PROVIDER_GPT'] || GPT_PROVIDER) as typeof GPT_PROVIDER,
-  CLAUDE: (process.env['EXPO_PUBLIC_PROVIDER_CLAUDE'] || CLAUDE_PROVIDER) as typeof CLAUDE_PROVIDER,
-  GEMINI: (process.env['EXPO_PUBLIC_PROVIDER_GEMINI'] || GEMINI_PROVIDER) as typeof GEMINI_PROVIDER
+  GPT: (process.env['EXPO_PUBLIC_PROVIDER_GPT'] || PROVIDER_GPT) as typeof PROVIDER_GPT,
+  CLAUDE: (process.env['EXPO_PUBLIC_PROVIDER_CLAUDE'] || PROVIDER_CLAUDE) as typeof PROVIDER_CLAUDE,
+  GEMINI: (process.env['EXPO_PUBLIC_PROVIDER_GEMINI'] || PROVIDER_GEMINI) as typeof PROVIDER_GEMINI
 } as const;
 
-export const MODELS = {
-  [GPT_PROVIDER]: createModel(
-    GPT_PROVIDER,
+export const MODELPROVIDERS = {
+  [PROVIDER_GPT]: createProvider(
+    PROVIDER_GPT,
     'GPT-4',
     OpenAIIcon
   ),
-  [CLAUDE_PROVIDER]: createModel(
-    CLAUDE_PROVIDER,
+  [PROVIDER_CLAUDE]: createProvider(
+    PROVIDER_CLAUDE,
     'Claude',
     AnthropicIcon
   ),
-  [GEMINI_PROVIDER]: createModel(
-    GEMINI_PROVIDER,
+  [PROVIDER_GEMINI]: createProvider(
+    PROVIDER_GEMINI,
     'Gemini',
     GeminiIcon
   )

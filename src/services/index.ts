@@ -1,3 +1,6 @@
-// filepath: src/services/index.ts
-// file description: central export point for all services
+/**
+ * @fileoverview Central export point for all services
+ * @filepath src/services/index.ts
+ */
+
 export * from './ChatService';

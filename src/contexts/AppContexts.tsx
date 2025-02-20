@@ -8,7 +8,7 @@ import {
   ThemeContext as IThemeContext, 
   AppContext as IAppContext,
   THEMES, 
-  MODELS 
+  MODELPROVIDERS 
 } from '../config'
 
 export const ThemeContext = createContext<IThemeContext>({
@@ -18,7 +18,7 @@ export const ThemeContext = createContext<IThemeContext>({
 })
 
 export const AppContext = createContext<IAppContext>({
-  chatType: MODELS.gpt,
+  chatType: MODELPROVIDERS.gpt,
   setChatType: () => null,
   handlePresentModalPress: () => null,
   closeModal: () => null,

@@ -4,7 +4,7 @@
  */
 
 export * from './Icons'
-export { AIModelsModal } from './AIModelsModal'
+export { ProvidersModal } from './ProvidersModal'
 export { Header } from './Header'
 export { ChatInput, ChatMessage, TypingIndicator } from './ChatUI'
 export { ErrorBoundary } from './ErrorBoundary'

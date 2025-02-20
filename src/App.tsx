@@ -22,7 +22,6 @@ if (typeof global.ReadableStream === 'undefined') {
 }
 
 import { useState, useEffect, useRef, SetStateAction } from 'react';
-import { LogBox } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
@@ -32,8 +31,8 @@ import { BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, Bottom
 import { useFonts } from 'expo-font';
 
 import { MainNavigator } from './navigation';
-import { Model, MODELS, THEMES, FONTS, getBottomSheetStyles, APP_CONFIG, DEFAULT_PROVIDER, ModelProvider } from './config';
-import { AIModelsModal } from './components/index';
+import { Model, MODELPROVIDERS, THEMES, FONTS, getBottomSheetStyles, APP_CONFIG, DEFAULT_PROVIDER, ModelProvider } from './config';
+import { ProvidersModal } from './components/index';
 import { ThemeContext, AppContext } from './contexts';
 import { ErrorBoundary } from './components';
 
@@ -43,27 +42,12 @@ const { STORAGE_KEYS } = APP_CONFIG;
 SplashScreen.preventAutoHideAsync()
 
 /**
- * Temporarily ignoring specific warnings:
- * 1. Image Picker Warning: This is kept as a placeholder for future implementation.
- *    When implementing image upload functionality:
- *    - Use result.canceled instead of result.cancelled
- *    - Example usage:
- *      const result = await ImagePicker.launchImageLibraryAsync();
- *      if (!result.canceled) {
- *        // Handle selected image
- *      }
- */
-LogBox.ignoreLogs([
-  'Key "cancelled" in the image picker result is deprecated and will be removed in SDK 48, use "canceled" instead'
-])
-
-/**
  * Extract context initialization logic
  * @returns {Object} - An object containing chatType, setChatType, currentTheme, and setCurrentTheme
  */
 const useAppConfiguration = () => {
   const defaultProvider = DEFAULT_PROVIDER as ModelProvider;
-  const [chatType, setChatType] = useState<Model>(MODELS[defaultProvider] || MODELS.gpt);
+  const [chatType, setChatType] = useState<Model>(MODELPROVIDERS[defaultProvider] || MODELPROVIDERS.gpt);
   const [currentTheme, setCurrentTheme] = useState(THEMES.light);
   
   useEffect(() => {
@@ -206,7 +190,7 @@ const App: React.FC = () => {
                 onDismiss={() => setModalVisible(false)}
               >
                 <BottomSheetView>
-                  <AIModelsModal
+                  <ProvidersModal
                     handlePresentModalPress={handlePresentModalPress}
                   />
                 </BottomSheetView>

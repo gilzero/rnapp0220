@@ -19,9 +19,9 @@ import * as Haptics from 'expo-haptics'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { ThemeContext, AppContext } from '../contexts'
 import { AnthropicIcon, OpenAIIcon, GeminiIcon } from '../components'
-import { IconProps, MODELS, THEMES, SETTINGS_CONFIG, APP_CONFIG } from '../config'
+import { IconProps, MODELPROVIDERS, THEMES, SETTINGS_CONFIG, APP_CONFIG } from '../config'
 
-const models = Object.values(MODELS)
+const models = Object.values(MODELPROVIDERS)
 const themes = [
   { name: 'Be Water', theme: THEMES.light },
   { name: 'Pink Lady', theme: THEMES.miami },
@@ -142,7 +142,7 @@ export function SettingsScreen() {
     outputRange: ['0deg', '180deg']
   })
 
-  function handleModelSelect(newModel: typeof MODELS[keyof typeof MODELS]) {
+  function handleModelSelect(newModel: typeof MODELPROVIDERS[keyof typeof MODELPROVIDERS]) {
     if (newModel.label === chatType.label) {
       return
     }

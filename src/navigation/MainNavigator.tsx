@@ -2,7 +2,7 @@
  * @fileoverview Main navigation component that sets up the navigation structure and global UI elements.
  * Implements bottom tab navigation, theme-aware toast notifications, and safe area handling.
  *
- * @filepath src/navigation/AppNavigator.tsx
+ * @filepath src/navigation/MainNavigator.tsx
  *
  * @see {@link ../App.tsx} for theme and app-wide state management
  * @see {@link ../screens/chat.tsx} for the main chat interface
@@ -134,7 +134,7 @@ function ToastConfig({ theme }: { theme: Theme }) {
 /**
  * Main navigation component that implements the bottom tab navigation.
  */
-function AppNavigatorComponent() {
+function MainNavigatorComponent() {
   const insets = useSafeAreaInsets()
   const { theme } = useContext(ThemeContext)
   const styles = getStyles({ theme, insets })
@@ -188,7 +188,7 @@ function AppNavigatorComponent() {
 export function MainNavigator() {
   return (
     <SafeAreaProvider>
-      <AppNavigatorComponent />
+      <MainNavigatorComponent />
     </SafeAreaProvider>
   )
 }
