@@ -7,7 +7,8 @@ if (typeof global.ReadableStream === 'undefined') {
 }
 
 import { useState, useEffect, useRef, SetStateAction } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native'
+import { NavigationService } from './services/NavigationService';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -106,7 +107,12 @@ const App: React.FC = () => {
   }
 
   function clearChat() {
-    clearChatRef.current?.()
+    // Navigate to Chat screen first, then clear the chat
+    NavigationService.navigate('AI Chat')
+    // Use setTimeout to ensure navigation completes before clearing
+    setTimeout(() => {
+      clearChatRef.current?.()
+    }, 100)
   }
 
   const bottomSheetStyles = getBottomSheetStyles(currentTheme)
@@ -131,7 +137,7 @@ const App: React.FC = () => {
             setTheme: _setCurrentTheme
           }}>
             <ActionSheetProvider>
-              <NavigationContainer>
+              <NavigationContainer ref={NavigationService.navigationRef}>
                 <MainNavigator />
               </NavigationContainer>
             </ActionSheetProvider>

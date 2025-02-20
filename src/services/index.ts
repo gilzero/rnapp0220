@@ -4,3 +4,4 @@
  */
 
 export * from './ChatService';
+export { NavigationService } from './NavigationService';
