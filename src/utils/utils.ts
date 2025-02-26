@@ -1,4 +1,5 @@
 // filepath: src/utils/Utils.ts
+// fileoverview: Utility functions for the application
 import { ChatMessage, ModelProviderConfig, ProviderIdentifier, DOMAIN, APP_CONFIG, MODELPROVIDERS } from '../config';
 import EventSource from 'react-native-sse';
 

@@ -1,5 +1,5 @@
-// filepath: src/services/ChatService.ts
 /**
+ * // filepath: src/services/ChatService.ts
  * DEV NOTE: Chat Implementation Strategy
  * 
  * Currently, the app exclusively uses streaming for all chat interactions via streamChat().
@@ -16,7 +16,7 @@ import { ChatMessage, ProviderIdentifier, DOMAIN, APP_CONFIG } from "../config";
 import { createSSEConnection, ChatError } from '../utils';
 
 export interface ChatOptions {
-  provider: ProviderIdentifier;
+  provider?: ProviderIdentifier;
   temperature?: number;
   streaming?: boolean;
 }
@@ -41,7 +41,7 @@ class ChatService {
     callbacks: ChatCallbacks
   ) {
     const { onToken, onError, onComplete } = callbacks;
-    const { provider } = options;
+    const { provider = '${provider}' } = options;
     const url = `${this.getApiUrl()}/chat/${provider}`;
     const body = JSON.stringify({ messages });
 
