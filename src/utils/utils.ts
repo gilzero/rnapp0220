@@ -3,7 +3,7 @@
 import { ChatMessage, ModelProviderConfig, ProviderIdentifier, DOMAIN, APP_CONFIG, MODELPROVIDERS } from '../config';
 import EventSource from 'react-native-sse';
 import { logError, logDebug, logInfo } from './logger';
-import { ApplicationError, ErrorType, ErrorSeverity, handleNetworkError } from './errorHandler';
+import { handleNetworkError } from './errorHandler';
 
 // =============== Error Handling ===============
 

@@ -21,7 +21,7 @@ import * as Clipboard from 'expo-clipboard';
 import Toast from 'react-native-toast-message';
 
 import { ThemeContext, AppContext } from '../contexts';
-import { ChatMessage, ChatState, APP_CONFIG } from '../config';
+import { ChatMessage, ChatState, APP_CONFIG, MessageRole } from '../config';
 import { chatService } from '../services';
 import { ChatError, validateMessage, getFirstNCharsOrLess, logInfo, logDebug, logError } from '../utils';
 import { ChatMessage as ChatMessageComponent, ChatInput, TypingIndicator } from '../components/ChatUI';
@@ -278,8 +278,8 @@ export function ChatScreen() {
                 };
               } else {
                 // New AI message started
-                const aiMessage = {
-                  role: 'assistant',
+                const aiMessage: ChatMessage = {
+                  role: 'assistant' as MessageRole,
                   content: newContent,
                   timestamp: Date.now(),
                   model: chatType.displayName

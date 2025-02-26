@@ -336,6 +336,7 @@ export const APP_CONFIG = {
         `File type not supported. Allowed types: ${types.join(', ')}`,
       FILE_TOO_LARGE: (maxSize: number) => 
         `File size exceeds maximum of ${maxSize / (1024 * 1024)}MB`,
+      GENERIC: 'A validation error occurred',
     },
     CONNECTION: {
       TIMEOUT: 'Connection timeout',
@@ -348,6 +349,18 @@ export const APP_CONFIG = {
     CACHE: {
       STORAGE_FULL: 'Local storage is full. Please clear some space.',
       INVALID_CACHE: 'Cache data is corrupted or invalid',
+    },
+    NETWORK: {
+      FAILED: 'Network request failed',
+      TIMEOUT: 'Network request timed out',
+    },
+    SERVER: {
+      GENERIC: 'A server error occurred',
+      UNAVAILABLE: 'Server is currently unavailable',
+    },
+    AUTH: {
+      FAILED: 'Authentication failed',
+      UNAUTHORIZED: 'Unauthorized access',
     },
   },
   UI: {

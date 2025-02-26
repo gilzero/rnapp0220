@@ -103,7 +103,8 @@ class LogRotator {
       const fileInfos = await Promise.all(
         rotatedLogs.map(async file => {
           const info = await FileSystem.getInfoAsync(file);
-          return { file, modTime: info.modificationTime || 0 };
+          const modTime = info.exists ? info.modificationTime || 0 : 0;
+          return { file, modTime };
         })
       );
       
@@ -179,10 +180,17 @@ class Logger {
       // Check if log needs rotation
       await this.rotator.rotateLogIfNeeded(logFile);
 
-      // Append to log file
-      await FileSystem.writeAsStringAsync(logFile, logEntry, {
-        encoding: FileSystem.EncodingType.UTF8,
-        append: true
+      // Read existing content
+      const existingContent = await FileSystem.readAsStringAsync(logFile, {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+
+      // Concatenate new log entry
+      const updatedContent = existingContent + logEntry;
+
+      // Write combined content back to the file
+      await FileSystem.writeAsStringAsync(logFile, updatedContent, {
+        encoding: FileSystem.EncodingType.UTF8
       });
 
       // Also log to console in development

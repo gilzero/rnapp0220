@@ -28,8 +28,8 @@ export interface AppError {
   code: string;
   type: ErrorType;
   severity: ErrorSeverity;
-  originalError?: Error;
-  metadata?: Record<string, any>;
+  originalError?: Error | undefined;
+  metadata?: Record<string, any> | undefined;
 }
 
 // Create a custom error class
@@ -37,8 +37,8 @@ export class ApplicationError extends Error implements AppError {
   code: string;
   type: ErrorType;
   severity: ErrorSeverity;
-  originalError?: Error;
-  metadata?: Record<string, any>;
+  originalError?: Error | undefined;
+  metadata?: Record<string, any> | undefined;
 
   constructor({
     message,

@@ -39,8 +39,8 @@ yarn-error.*
 uploads/
 
 # logs
-logs/
 *.log
+*.log.*
 
 # ide
 .vscode/
