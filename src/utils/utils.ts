@@ -2,6 +2,8 @@
 // fileoverview: Utility functions for the application
 import { ChatMessage, ModelProviderConfig, ProviderIdentifier, DOMAIN, APP_CONFIG, MODELPROVIDERS } from '../config';
 import EventSource from 'react-native-sse';
+import { logError, logDebug, logInfo } from './logger';
+import { ApplicationError, ErrorType, ErrorSeverity, handleNetworkError } from './errorHandler';
 
 // =============== Error Handling ===============
 
@@ -12,6 +14,9 @@ export class ChatError extends Error {
     super(message);
     this.code = code;
     this.name = 'ChatError';
+    
+    // Log the error
+    logError(`ChatError: ${message}`, { code });
   }
 }
 
@@ -54,6 +59,9 @@ export class ChatValidationError extends Error {
   ) {
     super(message);
     this.name = 'ChatValidationError';
+    
+    // Log the validation error
+    logError(`ChatValidationError: ${message}`, { code });
   }
 }
 
@@ -73,6 +81,8 @@ export function validateMessage(message: ChatMessage): void {
 }
 
 export function validateMessages(messages: ChatMessage[]): MessageValidationError | null {
+  logDebug('Validating messages', { count: messages.length, action: 'validate_messages' });
+  
   if (messages.length > APP_CONFIG.VALIDATION.MESSAGES.MAX_HISTORY) {
     return {
       code: 'TOO_MANY_MESSAGES',
@@ -128,6 +138,8 @@ export async function createSSEConnection(
     if (onConnectionStatus) {
       onConnectionStatus(retryCount === 0 ? 'connecting' : 'reconnecting');
     }
+    
+    logInfo('Creating SSE connection', { url, retryCount, action: 'create_connection' });
 
     const es = new EventSource(url, {
       headers: {
@@ -138,41 +150,70 @@ export async function createSSEConnection(
     });
 
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        es.close();
-        reject(new ChatError(APP_CONFIG.ERRORS.CONNECTION.TIMEOUT, 'CONNECTION_TIMEOUT'));
+      let isResolved = false;
+      let timeoutId: NodeJS.Timeout | null = null;
+      
+      timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true;
+          es.close();
+          const timeoutError = new ChatError(APP_CONFIG.ERRORS.CONNECTION.TIMEOUT, 'CONNECTION_TIMEOUT');
+          logError('Connection timeout', { url, retryCount });
+          reject(timeoutError);
+        }
       }, APP_CONFIG.NETWORK.TIMEOUTS.CONNECTION);
 
       es.addEventListener('open', () => {
-        clearTimeout(timeout);
-        if (onConnectionStatus) {
-          onConnectionStatus('connected');
+        if (!isResolved) {
+          isResolved = true;
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          if (onConnectionStatus) {
+            onConnectionStatus('connected');
+          }
+          logInfo('SSE connection established', { url, action: 'connection_established' });
+          resolve(es);
         }
-        resolve(es);
       });
 
       es.addEventListener('error', async () => {
-        clearTimeout(timeout);
-        es.close();
-
-        if (retryCount < MAX_ATTEMPTS) {
-          const retryDelay = Math.min(
-            BACKOFF_MS * Math.pow(2, retryCount),
-            MAX_BACKOFF_MS
-          );
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-
-          try {
-            const newConnection = await createSSEConnection(url, body, callbacks, retryCount + 1);
-            resolve(newConnection);
-          } catch (error) {
-            reject(error);
+        if (!isResolved) {
+          isResolved = true;
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
           }
-        } else {
-          if (onConnectionStatus) {
-            onConnectionStatus('disconnected');
+          es.close();
+          logError('SSE connection error', { url, retryCount });
+
+          if (retryCount < MAX_ATTEMPTS) {
+            const retryDelay = Math.min(
+              BACKOFF_MS * Math.pow(2, retryCount),
+              MAX_BACKOFF_MS
+            );
+            logInfo(`Retrying connection in ${retryDelay}ms`, { 
+              retryCount: retryCount + 1, 
+              retryDelay,
+              action: 'connection_retry'
+            });
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+
+            try {
+              const newConnection = await createSSEConnection(url, body, callbacks, retryCount + 1);
+              resolve(newConnection);
+            } catch (error) {
+              reject(error);
+            }
+          } else {
+            if (onConnectionStatus) {
+              onConnectionStatus('disconnected');
+            }
+            const connectionError = new ChatError(APP_CONFIG.ERRORS.CONNECTION.FAILED, 'CONNECTION_FAILED');
+            logError('Connection failed after max retry attempts', { maxAttempts: MAX_ATTEMPTS });
+            reject(connectionError);
           }
-          reject(new ChatError(APP_CONFIG.ERRORS.CONNECTION.FAILED, 'CONNECTION_FAILED'));
         }
       });
     });
@@ -180,6 +221,13 @@ export async function createSSEConnection(
     if (onConnectionStatus) {
       onConnectionStatus('disconnected');
     }
+    
+    // Use our error handling system
+    if (error instanceof Error) {
+      handleNetworkError(error, url);
+    }
+    
+    logError('Failed to create SSE connection', { url, error });
     throw error;
   }
 }
@@ -195,6 +243,8 @@ export function getEventSource({
 }): EventSource {
   const url = `${DOMAIN}/api/${type}`;
   const stringifiedBody = JSON.stringify(body);
+  
+  logDebug('Creating event source', { url, type, action: 'create_event_source' });
 
   return new EventSource(url, {
     headers: {

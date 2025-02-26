@@ -2,6 +2,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { THEMES, APP_CONFIG } from '../config';
+import { logError, logException, logInfo } from '../utils';
+import { ErrorType, ErrorSeverity, ApplicationError } from '../utils/errorHandler';
 
 interface Props {
   children: React.ReactNode;
@@ -23,11 +25,27 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error to your error reporting service
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log error to our error reporting service
+    logException(error, 'ErrorBoundary');
+    
+    // Create an application error for better tracking
+    new ApplicationError({
+      message: error.message,
+      code: 'UI_ERROR',
+      type: ErrorType.CLIENT,
+      severity: ErrorSeverity.HIGH,
+      originalError: error,
+      metadata: {
+        componentStack: errorInfo.componentStack
+      }
+    });
   }
 
   handleReset = () => {
+    logInfo('User attempting to recover from error boundary', { 
+      action: 'reset_error_boundary',
+      errorMessage: this.state.error?.message
+    });
     this.setState({ hasError: false, error: null });
   };
 

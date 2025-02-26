@@ -38,6 +38,10 @@ yarn-error.*
 # uploads
 uploads/
 
+# logs
+logs/
+*.log
+
 # ide
 .vscode/
 .idea/

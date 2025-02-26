@@ -21,8 +21,15 @@ import { ModelProviderConfig, MODELPROVIDERS, THEMES, FONTS, getBottomSheetStyle
 import { ProvidersModal } from './components';
 import { ThemeContext, AppContext } from './contexts';
 import { ErrorBoundary } from './components';
+import { logInfo, logError, logDebug, logWarn, setupGlobalErrorHandlers } from './utils';
 
 const { STORAGE_KEYS } = APP_CONFIG;
+
+// Set up global error handlers
+setupGlobalErrorHandlers();
+
+// Log application startup
+logInfo('Application starting up', { version: '1.1.0' });
 
 SplashScreen.preventAutoHideAsync()
 
@@ -30,7 +37,7 @@ const useAppConfiguration = () => {
   // If no providers are configured, use an empty provider config to prevent crashes
   const hasProviders = Object.keys(MODELPROVIDERS).length > 0;
   if (!hasProviders) {
-    console.warn('No providers configured in environment variables');
+    logWarn('No providers configured in environment variables');
   }
 
   const [chatType, setChatType] = useState<ModelProviderConfig>(() => {
@@ -45,15 +52,25 @@ const useAppConfiguration = () => {
   useEffect(() => {
     async function loadConfiguration() {
       try {
+        logDebug('Loading saved configuration', { action: 'init' });
         const [savedChatType, savedTheme] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.CHAT_TYPE),
           AsyncStorage.getItem(STORAGE_KEYS.THEME)
         ]);
 
-        if (savedChatType) setChatType(JSON.parse(savedChatType));
-        if (savedTheme) setCurrentTheme(JSON.parse(savedTheme));
-      } catch (err) {
-        console.error('Failed to load configuration:', err);
+        if (savedChatType) {
+          const parsedChatType = JSON.parse(savedChatType);
+          setChatType(parsedChatType);
+          logDebug('Loaded saved chat type', { provider: parsedChatType.label });
+        }
+
+        if (savedTheme) {
+          const parsedTheme = JSON.parse(savedTheme);
+          setCurrentTheme(parsedTheme);
+          logDebug('Loaded saved theme', { theme: parsedTheme.name });
+        }
+      } catch (error) {
+        logError('Failed to load configuration', { error: error instanceof Error ? error.message : String(error) });
       }
     }
 

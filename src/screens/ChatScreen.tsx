@@ -23,7 +23,7 @@ import Toast from 'react-native-toast-message';
 import { ThemeContext, AppContext } from '../contexts';
 import { ChatMessage, ChatState, APP_CONFIG } from '../config';
 import { chatService } from '../services';
-import { ChatError, validateMessage, getFirstNCharsOrLess } from '../utils';
+import { ChatError, validateMessage, getFirstNCharsOrLess, logInfo, logDebug, logError } from '../utils';
 import { ChatMessage as ChatMessageComponent, ChatInput, TypingIndicator } from '../components/ChatUI';
 import { getChatStyles } from '../styles/chat'
 
@@ -165,11 +165,28 @@ export function ChatScreen() {
   };
 
   const validateAndPrepareMessage = (input: string, chatState: ChatState) => {
-    const messages = [...chatState.messages, {
+    const userMessage = {
       role: 'user' as const,
       content: getFirstNCharsOrLess(input),
       timestamp: Date.now()
-    }];
+    };
+    
+    const messages = [...chatState.messages, userMessage];
+
+    // Log user prompt
+    logInfo('User sent message', { 
+      messageId: userMessage.timestamp,
+      contentLength: userMessage.content.length,
+      action: 'user_message'
+    });
+    
+    // For privacy reasons, we log a truncated version of the message
+    logDebug('User message content (truncated)', { 
+      preview: userMessage.content.length > 30 
+        ? `${userMessage.content.substring(0, 30)}...` 
+        : userMessage.content,
+      action: 'user_message_content'
+    });
 
     const newMessage = messages[messages.length - 1]!;
     validateMessage(newMessage);
@@ -235,6 +252,7 @@ export function ChatScreen() {
       animateTypingDots()
 
       const responseMap = new Map<string, string>();
+      const startTime = Date.now();
 
       await chatService.streamChat(
         messages,
@@ -259,11 +277,21 @@ export function ChatScreen() {
                   content: newContent
                 };
               } else {
-                messages.push({
+                // New AI message started
+                const aiMessage = {
                   role: 'assistant',
                   content: newContent,
                   timestamp: Date.now(),
                   model: chatType.displayName
+                };
+                
+                messages.push(aiMessage);
+                
+                // Log the start of AI response
+                logInfo('AI response started', { 
+                  messageId,
+                  model: chatType.displayName,
+                  action: 'ai_response_started'
                 });
               }
 
@@ -276,6 +304,12 @@ export function ChatScreen() {
             requestAnimationFrame(scrollToBottom);
           },
           onError: (error) => {
+            logError('Chat error occurred', { 
+              error: error instanceof Error ? error.message : String(error),
+              provider: chatType.label,
+              action: 'chat_error'
+            });
+            
             console.error('Chat error:', error)
             setLoading(false)
             animateInputLoading(false)
@@ -286,17 +320,53 @@ export function ChatScreen() {
             }
           },
           onComplete: () => {
+            const responseTime = Date.now() - startTime;
+            
+            // Get the final AI response
+            setChatState(prev => {
+              const lastMessage = prev.messages[prev.messages.length - 1];
+              if (lastMessage?.role === 'assistant') {
+                // Log completion of AI response
+                logInfo('AI response completed', { 
+                  responseTimeMs: responseTime,
+                  contentLength: lastMessage.content.length,
+                  model: chatType.displayName,
+                  action: 'ai_response_completed'
+                });
+                
+                // For privacy reasons, we log a truncated version of the message
+                logDebug('AI response content (truncated)', { 
+                  preview: lastMessage.content.length > 50 
+                    ? `${lastMessage.content.substring(0, 50)}...` 
+                    : lastMessage.content,
+                  action: 'ai_response_content'
+                });
+              }
+              return prev;
+            });
+            
             setLoading(false)
             animateInputLoading(false)
             scrollToBottom()
           },
           onConnectionStatus: (status) => {
+            logInfo('Connection status changed', { 
+              status,
+              provider: chatType.label,
+              action: 'connection_status_change'
+            });
+            
             setConnectionStatus(status)
             showConnectionToast(status)
           }
         }
       )
     } catch (error) {
+      logError('Failed to send message', { 
+        error: error instanceof Error ? error.message : String(error),
+        action: 'message_send_failed'
+      });
+      
       console.error('Failed to send message:', error)
       setLoading(false)
       animateInputLoading(false)
