@@ -1,3 +1,4 @@
+// filepath: src/components/ChatAnimations.ts
 import { Animated, Easing } from 'react-native';
 import { APP_CONFIG } from '../config';
 

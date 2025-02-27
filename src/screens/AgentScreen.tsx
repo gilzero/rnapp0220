@@ -5,10 +5,11 @@ import { ThemeContext } from '../contexts'
 import { getAgentStyles } from '../styles/agent'
 import { MotiView, MotiText } from 'moti'
 import { Easing } from 'react-native-reanimated'
+import { BaseTheme } from '../config'
 
 export function AgentScreen() {
   const { theme } = useContext(ThemeContext)
-  const styles = getAgentStyles(theme)
+  const styles = getAgentStyles(theme as BaseTheme)
 
   return (
     <View style={styles.container}>

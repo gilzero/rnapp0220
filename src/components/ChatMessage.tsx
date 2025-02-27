@@ -1,3 +1,4 @@
+// filepath: src/components/ChatMessage.tsx
 import React, { memo } from 'react';
 import { View, TouchableHighlight, Animated, Text } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';

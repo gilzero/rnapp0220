@@ -18,7 +18,7 @@ import * as Haptics from 'expo-haptics'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { ThemeContext, AppContext } from '../contexts'
 import { AnthropicIcon, OpenAIIcon, GeminiIcon } from '../components'
-import { IconProps, MODELPROVIDERS, THEMES, SETTINGS_CONFIG, APP_CONFIG } from '../config'
+import { IconProps, MODELPROVIDERS, THEMES, SETTINGS_CONFIG, APP_CONFIG, BaseTheme } from '../config'
 import { getSettingsStyles } from '../styles/settings'
 
 const models = Object.values(MODELPROVIDERS)
@@ -68,7 +68,7 @@ type SettingsStyles = {
 export function SettingsScreen() {
   const { theme, setTheme } = useContext(ThemeContext)
   const { chatType, setChatType, clearChatRef } = useContext(AppContext)
-  const styles = getSettingsStyles(theme) as SettingsStyles
+  const styles = getSettingsStyles(theme as BaseTheme) as SettingsStyles
   const [showHiddenSettings, setShowHiddenSettings] = useState(false)
   const [temperature, setTemperature] = useState<number>(SETTINGS_CONFIG.MODEL_PARAMS.TEMPERATURE.DEFAULT)
   const [maxTokens, setMaxTokens] = useState<number>(SETTINGS_CONFIG.MODEL_PARAMS.MAX_TOKENS.DEFAULT)

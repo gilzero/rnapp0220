@@ -1,3 +1,4 @@
+// filepath: src/components/ChatController.tsx
 import { useState, useRef, useEffect, useContext } from 'react';
 import { Animated, Keyboard } from 'react-native';
 import 'react-native-get-random-values';

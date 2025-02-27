@@ -17,7 +17,18 @@ import { BottomSheetBackdrop, BottomSheetModal, BottomSheetModalProvider, Bottom
 import { useFonts } from 'expo-font';
 
 import { MainNavigator } from './navigation';
-import { ModelProviderConfig, MODELPROVIDERS, THEMES, FONTS, getBottomSheetStyles, APP_CONFIG, DEFAULT_PROVIDER, ProviderIdentifier } from './config';
+import { 
+  ModelProviderConfig, 
+  MODELPROVIDERS, 
+  THEMES, 
+  FONTS, 
+  APP_CONFIG, 
+  DEFAULT_PROVIDER, 
+  ProviderIdentifier,
+  getBottomSheetStyles,
+  BaseTheme,
+  Theme
+} from './config';
 import { ProvidersModal } from './components';
 import { ThemeContext, AppContext } from './contexts';
 import { ErrorBoundary } from './components';
@@ -117,8 +128,8 @@ const App: React.FC = () => {
     AsyncStorage.setItem(STORAGE_KEYS.CHAT_TYPE, JSON.stringify(type))
   }
 
-  const _setCurrentTheme = (theme: SetStateAction<typeof THEMES.light>) => {
-    setCurrentTheme(theme)
+  const _setCurrentTheme = (theme: SetStateAction<BaseTheme>) => {
+    setCurrentTheme(theme as any)
     if (theme instanceof Function) return
     AsyncStorage.setItem(STORAGE_KEYS.THEME, JSON.stringify(theme))
   }
@@ -149,9 +160,9 @@ const App: React.FC = () => {
           }}
         >
           <ThemeContext.Provider value={{
-            theme: currentTheme,
+            theme: currentTheme as Theme,
             themeName: currentTheme.name,
-            setTheme: _setCurrentTheme
+            setTheme: _setCurrentTheme as any
           }}>
             <ActionSheetProvider>
               <NavigationContainer ref={NavigationService.navigationRef}>

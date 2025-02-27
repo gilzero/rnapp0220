@@ -1,3 +1,4 @@
+// filepath: src/components/ChatStyles.ts
 import { StyleSheet } from 'react-native';
 import { APP_CONFIG } from '../config';
 

@@ -15,7 +15,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 
 import { ThemeContext } from '../contexts';
-import { APP_CONFIG, ChatMessage as ChatMessageType } from '../config';
+import { APP_CONFIG, ChatMessage as ChatMessageType, BaseTheme } from '../config';
 import { ChatMessage, ChatInput, TypingIndicator } from '../components/ChatUI';
 import { getChatStyles } from '../styles/chat';
 import { useChatController } from '../components/ChatController';
@@ -23,7 +23,7 @@ import { animateButton } from '../components/ChatAnimations';
 
 export function ChatScreen() {
   const { theme } = useContext(ThemeContext);
-  const styles = getChatStyles(theme);
+  const styles = getChatStyles(theme as BaseTheme);
   const scrollViewRef = useRef<ScrollView | null>(null);
   
   const scrollToBottom = () => {
