@@ -22,11 +22,19 @@ export class ChatError extends Error {
 
 // =============== Message Utilities ===============
 
-export function getFirstNCharsOrLess(text: string, numChars: number = APP_CONFIG.VALIDATION.MESSAGES.MAX_LENGTH): string {
-  if (!text?.trim()) {
+export function getFirstNCharsOrLess(text: string | undefined | null, numChars: number = APP_CONFIG.VALIDATION.MESSAGES.MAX_LENGTH): string {
+  if (!text) {
     return '';
   }
-  const trimmedText = text.trim();
+  
+  // Ensure text is a string
+  const textStr = String(text);
+  
+  if (!textStr.trim()) {
+    return '';
+  }
+  
+  const trimmedText = textStr.trim();
   if (trimmedText.length <= numChars) {
     return trimmedText;
   }
@@ -66,7 +74,12 @@ export class ChatValidationError extends Error {
 }
 
 export function validateMessage(message: ChatMessage): void {
-  const content = message.content?.trim();
+  if (!message) {
+    throw new ChatValidationError('EMPTY_MESSAGE', APP_CONFIG.ERRORS.VALIDATION.EMPTY_MESSAGE);
+  }
+
+  // Ensure content is a string
+  const content = message.content ? String(message.content).trim() : '';
 
   if (!content) {
     throw new ChatValidationError('EMPTY_MESSAGE', APP_CONFIG.ERRORS.VALIDATION.EMPTY_MESSAGE);

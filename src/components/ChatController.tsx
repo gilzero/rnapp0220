@@ -137,12 +137,12 @@ export function useChatController({ scrollToBottom }: ChatControllerProps) {
     
     // For privacy reasons, we log a truncated version of the message
     logDebug('User message content (truncated)', { 
-      preview: userMessage.content.length > 30 
+      preview: userMessage.content && userMessage.content.length > 30 
         ? `${userMessage.content.substring(0, 30)}...` 
-        : userMessage.content,
+        : userMessage.content || '',
       action: 'user_message_content'
     });
-
+    
     const newMessage = messages[messages.length - 1]!;
     validateMessage(newMessage);
 
@@ -258,9 +258,9 @@ export function useChatController({ scrollToBottom }: ChatControllerProps) {
                 
                 // For privacy reasons, we log a truncated version of the message
                 logDebug('AI response content (truncated)', { 
-                  preview: lastMessage.content.length > 50 
+                  preview: lastMessage.content && lastMessage.content.length > 50 
                     ? `${lastMessage.content.substring(0, 50)}...` 
-                    : lastMessage.content,
+                    : lastMessage.content || '',
                   action: 'ai_response_content'
                 });
               }

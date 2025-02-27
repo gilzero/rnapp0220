@@ -149,7 +149,9 @@ class ChatService {
         } catch (e) {
           logError('Failed to parse stream chunk', {
             error: e instanceof Error ? e.message : String(e),
-            data: typeof event.data === 'string' ? event.data.substring(0, 100) : 'non-string data',
+            data: typeof event.data === 'string' && event.data 
+              ? event.data.substring(0, 100) 
+              : 'non-string or empty data',
             action: 'parse_error'
           });
           console.warn('Failed to parse chunk:', e);
