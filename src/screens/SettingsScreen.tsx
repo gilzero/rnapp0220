@@ -13,7 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native'
 import * as Haptics from 'expo-haptics'
 import { ThemeContext, AppContext } from '../contexts'
-import { MODELPROVIDERS, THEMES, SETTINGS_CONFIG, APP_CONFIG, BaseTheme } from '../config'
+import { THEMES, SETTINGS_CONFIG, APP_CONFIG, BaseTheme, ModelProviderConfig } from '../config'
 import { getSettingsStyles } from '../styles/settings'
 import { 
   ModelSection, 
@@ -105,7 +105,7 @@ export function SettingsScreen() {
     outputRange: ['0deg', '180deg']
   })
 
-  function handleModelSelect(newModel: typeof MODELPROVIDERS[keyof typeof MODELPROVIDERS]) {
+  function handleModelSelect(newModel: ModelProviderConfig) {
     if (newModel.label === chatType.label) {
       return
     }

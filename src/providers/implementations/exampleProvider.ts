@@ -1,3 +1,4 @@
+// filepath: src/providers/implementations/exampleProvider.ts
 import React from 'react';
 import { Provider } from '../types';
 import { DefaultProviderIcon } from '../../components/Icons';

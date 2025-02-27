@@ -12,6 +12,7 @@ import Slider from '@react-native-community/slider'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { AnthropicIcon, OpenAIIcon, GeminiIcon } from './index'
 import { IconProps, MODELPROVIDERS, SETTINGS_CONFIG, BaseTheme } from '../config'
+import { useProviders } from '../providers'
 
 type DynamicStyleProps = {
   baseType: string;
@@ -55,6 +56,16 @@ export function renderIcon(props: IconProps): React.ReactElement | null {
 
   if (!type) return null;
 
+  // Get the provider from the registry
+  const { providerRegistry } = require('../providers');
+  const provider = providerRegistry.getProvider(type);
+  
+  if (provider) {
+    // Use the provider's getIcon function
+    return provider.getIcon({ size, theme, selected: selected || false });
+  }
+  
+  // Fallback to legacy icon rendering for backward compatibility
   const iconSize = typeof size === 'string' ? parseInt(size, 10) : size;
   if (type.includes('gpt')) {
     return <OpenAIIcon size={iconSize ?? 0} theme={theme} selected={selected || false} />
@@ -92,7 +103,7 @@ interface ModelSectionProps {
 }
 
 export function ModelSection({ styles, theme, chatType, handleModelSelect }: ModelSectionProps) {
-  const models = Object.values(MODELPROVIDERS);
+  const models = useProviders();
   
   return (
     <View style={styles.sectionContainer}>
@@ -113,7 +124,7 @@ export function ModelSection({ styles, theme, chatType, handleModelSelect }: Mod
               {renderIcon({
                 theme,
                 type: model.label,
-                size: 24 as NumberProp,
+                size: 24,
                 selected: chatType.label === model.label || false
               })}
               <Text
