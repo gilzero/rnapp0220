@@ -8,7 +8,8 @@ import { useContext } from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { ThemeContext, AppContext } from '../contexts';
-import { THEMES, APP_CONFIG } from '../config';
+import { APP_CONFIG } from '../config';
+import { Theme } from '../config/config_types';
 
 export function Header() {
   const { theme } = useContext(ThemeContext)
@@ -89,7 +90,7 @@ export function Header() {
   )
 }
 
-function getStyles(theme: typeof THEMES.light) {
+function getStyles(theme: Theme) {
   return StyleSheet.create({
     container: {
       backgroundColor: theme.backgroundColor,

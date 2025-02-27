@@ -1,3 +1,4 @@
+// filepath: src/providers/hooks.ts
 import { useState, useEffect } from 'react';
 import { providerRegistry } from './registry';
 import { ModelProviderConfig } from '../config';

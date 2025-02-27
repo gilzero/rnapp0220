@@ -1,53 +1,80 @@
 # Provider Architecture
 
-This directory contains the refactored provider architecture for the application. The goal of this refactoring was to create a more maintainable and extensible way to manage AI providers in the application.
+This directory contains the provider architecture for the application. The goal of this architecture is to create a maintainable and extensible way to manage AI providers in the application.
 
 ## Structure
 
 - `types.ts`: Contains the core interfaces for providers
 - `registry.ts`: Implements the provider registry pattern
-- `implementations/`: Contains individual provider implementations
-- `index.ts`: Exports everything and maintains backward compatibility
+- `hooks.ts`: Provides React hooks for accessing providers in components
+- `index.ts`: Exports everything and handles provider registration from JSON configuration
+
+## Provider Configuration
+
+Providers are configured via the JSON configuration in `src/config/providers.json`. This approach allows for:
+
+1. Easy addition of new providers without code changes
+2. Single source of truth for provider configuration
+3. Dynamic loading of providers at runtime
+
+The configuration follows this structure:
+
+```json
+{
+  "providers": {
+    "provider-key": {
+      "displayName": "Provider Display Name",
+      "providerIconKey": "icon-key"
+    }
+  },
+  "defaultProvider": "default-provider-key"
+}
+```
+
+Note that the key used in the providers object (e.g., "provider-key") serves as the provider's identifier throughout the application.
 
 ## Adding a New Provider
 
 To add a new provider, follow these steps:
 
-1. Create a new icon component in `src/components/Icons.tsx` (or use the DefaultProviderIcon)
-2. Create a new provider implementation in `src/providers/implementations/`
-3. Register the provider in `src/providers/index.ts`
+1. Add the provider to `src/config/providers.json`:
 
-Example provider implementation:
-
-```typescript
-// src/providers/implementations/newProvider.ts
-import React from 'react';
-import { Provider } from '../types';
-import { DefaultProviderIcon } from '../../components/Icons';
-
-export const newProvider: Provider = {
-  id: 'new-provider',
-  displayName: 'New Provider',
-  iconMappingKey: 'default',
-  getIcon: (props) => React.createElement(DefaultProviderIcon, props)
-};
+```json
+{
+  "providers": {
+    "new-provider": {
+      "displayName": "New Provider",
+      "providerIconKey": "default"
+    },
+    // existing providers...
+  }
+}
 ```
 
-## Environment Configuration
+2. (Optional) Create a new icon component in `src/components/Icons.tsx` and register it in the `PROVIDER_ICON_MAPPING` in `src/config/config_providers.ts`
 
-Providers can still be configured via environment variables:
+3. (Optional) Add provider-specific logic by modifying the provider registration in `src/providers/index.ts`
 
-```
-EXPO_PUBLIC_PROVIDERS='{"new-provider":{"id":"new-provider","displayName":"New Provider","iconMappingKey":"default"}}'
-EXPO_PUBLIC_DEFAULT_PROVIDER="new-provider"
-```
+## Provider Hooks
+
+The `hooks.ts` file provides React hooks for accessing providers:
+
+- `useProviders()`: Returns a list of all available providers in the format expected by UI components
+  - Automatically updates when providers are added or removed
+  - Transforms provider data to the `ModelProviderConfig` format
+
+## Type Safety
+
+The provider system uses TypeScript to ensure type safety:
+
+- The `ProviderIdentifier` type is automatically generated from the keys in the providers.json file
+- This ensures that all references to provider IDs throughout the codebase are type-checked
 
 ## Backward Compatibility
 
-The refactoring maintains backward compatibility with the existing codebase by:
+The architecture maintains backward compatibility with the existing codebase by:
 
-1. Exporting the same constants (PROVIDER_GPT, PROVIDER_CLAUDE, etc.)
-2. Creating a MODELPROVIDERS object that matches the original format
-3. Exporting DEFAULT_PROVIDER in the same format
+1. Creating a `MODELPROVIDERS` object that matches the original format
+2. Exporting `DEFAULT_PROVIDER` in the same format
 
-This allows the rest of the application to continue working without changes while benefiting from the improved architecture. 
+This allows the rest of the application to continue working without changes while benefiting from the improved architecture.
