@@ -70,7 +70,7 @@ export interface ModelProviderConfig {
 export interface ProviderEnvConfig {
   id: ProviderIdentifier;
   displayName: string;
-  iconMappingKey: string;
+  iconMappingKey?: string;
 }
 
 export interface BottomSheetStyles {
@@ -128,4 +128,4 @@ export type ThemeType = {
   dark: BaseTheme;
   miami: BaseTheme;
   vercel: BaseTheme;
-}; 
+}

@@ -1,85 +1,74 @@
 // src/config/config_providers.ts
 import { ModelProviderConfig, ProviderEnvConfig, ProviderIdentifier } from './config_types';
-import { OpenAIIcon, AnthropicIcon, GeminiIcon } from '../components/Icons';
+import { OpenAIIcon, AnthropicIcon, GeminiIcon, DefaultProviderIcon } from '../components/Icons';
+import rawProvidersConfig from './providers.json';
+
+// Define the expected shape of our JSON config
+interface ProvidersJsonConfig {
+  providers: Record<string, {
+    id: string;
+    displayName: string;
+    iconMappingKey?: string;
+  }>;
+  defaultProvider: string;
+}
+
+// Type assertion for the imported JSON
+const providersConfig = rawProvidersConfig as ProvidersJsonConfig;
 
 /* ---------- Providers ---------- */
-export const PROVIDER_GPT = 'gpt' as const;
-export const PROVIDER_CLAUDE = 'claude' as const;
-export const PROVIDER_GEMINI = 'gemini' as const;
 
-const FALLBACK_PROVIDER_CONFIG: Record<string, ProviderEnvConfig> = {
-  [PROVIDER_GPT]: {
-    id: PROVIDER_GPT,
-    displayName: 'GPT',
-    iconMappingKey: 'openai'
-  }
-};
-
+// Icon mapping for different provider types
 const ICON_MAPPING = {
   'openai': OpenAIIcon,
   'anthropic': AnthropicIcon,
-  'gemini': GeminiIcon
+  'gemini': GeminiIcon,
+  'default': DefaultProviderIcon
 } as const;
 
-const providersConfig: Record<string, ProviderEnvConfig> = (() => {
+// Get providers from the JSON configuration file
+const providers: Record<string, ProviderEnvConfig> = (() => {
   try {
-    const rawConfig = process.env['EXPO_PUBLIC_PROVIDERS'];
-    if (!rawConfig) {
-      console.warn('EXPO_PUBLIC_PROVIDERS is not defined, using fallback configuration');
-      return FALLBACK_PROVIDER_CONFIG;
-    }
-
-    const parsedConfig = JSON.parse(rawConfig);
-    
-    // Validate the parsed configuration
-    if (typeof parsedConfig !== 'object' || parsedConfig === null) {
-      throw new Error('EXPO_PUBLIC_PROVIDERS must be a valid JSON object');
-    }
-
-    // Add shape validation
-    Object.entries(parsedConfig).forEach(([key, config]: [string, any]) => {
-      if (!config.id || !config.displayName || !config.iconMappingKey) {
-        throw new Error(`Provider config for '${key}' is missing required fields: id, displayName, or iconMappingKey`);
+    // Validate the configuration
+    Object.entries(providersConfig.providers).forEach(([key, config]) => {
+      if (!config.id || !config.displayName) {
+        throw new Error(`Provider config for '${key}' is missing required fields: id or displayName`);
       }
     });
 
-    return parsedConfig;
-  } catch (e) {
-    const error = e as Error;
-    console.error(
-      'Failed to parse EXPO_PUBLIC_PROVIDERS:',
-      '\nError:', error.message,
-      '\nRaw config:', process.env['EXPO_PUBLIC_PROVIDERS'],
-      '\nUsing fallback configuration'
-    );
-    return FALLBACK_PROVIDER_CONFIG;
+    // Convert the JSON data to our expected type with proper type assertions
+    return Object.entries(providersConfig.providers).reduce((acc, [key, config]) => {
+      acc[key] = {
+        id: config.id as ProviderIdentifier,
+        displayName: config.displayName,
+        iconMappingKey: config.iconMappingKey ?? 'default'
+      };
+      return acc;
+    }, {} as Record<string, ProviderEnvConfig>);
+  } catch (error) {
+    console.error('Error loading provider configuration:', error);
+    return {};
   }
 })();
 
-export const DEFAULT_PROVIDER = (() => {
-  const envDefaultProvider = process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'];
-  if (envDefaultProvider && Object.keys(providersConfig).includes(envDefaultProvider)) {
-    return envDefaultProvider as ProviderIdentifier;
-  }
-  console.warn(
-    `Invalid or undefined EXPO_PUBLIC_DEFAULT_PROVIDER: ${envDefaultProvider}. Falling back to default provider.`
-  );
-  return Object.keys(providersConfig)[0] as ProviderIdentifier || PROVIDER_GPT;
-})();
+// Default provider from configuration
+export const DEFAULT_PROVIDER = providersConfig.defaultProvider || 'gpt';
 
-export const MODELPROVIDERS = Object.entries(providersConfig).reduce((acc, [key, config]) => {
+// Convert providers to ModelProviderConfig format
+export const MODELPROVIDERS = Object.freeze(Object.entries(providers).reduce((acc, [key, config]) => {
   acc[key as ProviderIdentifier] = {
     label: key as ProviderIdentifier,
     displayName: config.displayName,
-    icon: ICON_MAPPING[config.iconMappingKey as keyof typeof ICON_MAPPING] || null
+    icon: config.iconMappingKey ? (ICON_MAPPING[config.iconMappingKey as keyof typeof ICON_MAPPING] || ICON_MAPPING['default']) : ICON_MAPPING['default']
   };
   return acc;
-}, {} as Record<ProviderIdentifier, ModelProviderConfig>);
+}, {} as Record<ProviderIdentifier, ModelProviderConfig>));
 
+// These can still be configured via environment variables if needed
 export const MODEL_PARAMS = {
   TEMPERATURE: parseFloat(process.env['EXPO_PUBLIC_TEMPERATURE'] || '0.7'),
-  MAX_TOKENS: parseInt(process.env['EXPO_PUBLIC_MAX_TOKENS'] || '2000', 10)
-} as const;
+  MAX_TOKENS: parseInt(process.env['EXPO_PUBLIC_MAX_TOKENS'] || '4000', 10)
+};
 
 export const SETTINGS_CONFIG = {
   MODEL_PARAMS: {
@@ -100,4 +89,4 @@ export const SETTINGS_CONFIG = {
     THEME: 'theme',
     CHAT_TYPE: 'chatType'
   }
-} as const; 
+} as const;

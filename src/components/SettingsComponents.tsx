@@ -7,11 +7,11 @@ import {
   Animated,
   TouchableOpacity
 } from 'react-native'
-import { NumberProp } from 'react-native-svg'
+
 import Slider from '@react-native-community/slider'
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { AnthropicIcon, OpenAIIcon, GeminiIcon } from './index'
-import { IconProps, MODELPROVIDERS, SETTINGS_CONFIG, BaseTheme } from '../config'
+import { IconProps, SETTINGS_CONFIG, BaseTheme } from '../config'
 import { useProviders } from '../providers'
 
 type DynamicStyleProps = {

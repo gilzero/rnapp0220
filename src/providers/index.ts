@@ -1,61 +1,91 @@
 // src/providers/index.ts
 import { providerRegistry } from './registry';
-import { openaiProvider } from './implementations/openai';
-import { claudeProvider } from './implementations/claude';
-import { geminiProvider } from './implementations/gemini';
-import { exampleProvider } from './implementations/exampleProvider';
-import { Provider, ProviderIdentifier } from './types';
-import { DefaultProviderIcon } from '../components/Icons';
 import React from 'react';
+import { Provider, ProviderIdentifier } from './types';
+import { DefaultProviderIcon, OpenAIIcon, AnthropicIcon, GeminiIcon } from '../components/Icons';
+import rawProvidersConfig from '../config/providers.json';
 import { logInfo, logWarn } from '../utils';
 
-// Register built-in providers
-providerRegistry.register(openaiProvider);
-providerRegistry.register(claudeProvider);
-providerRegistry.register(geminiProvider);
-providerRegistry.register(exampleProvider);
+// Define the expected shape of our JSON config
+interface ProvidersJsonConfig {
+  providers: Record<string, {
+    id: string;
+    displayName: string;
+    iconMappingKey?: string;
+  }>;
+  defaultProvider: string;
+}
 
-// Load providers from environment
+// Type assertion for the imported JSON
+const providersConfig = rawProvidersConfig as ProvidersJsonConfig;
+
+// Icon mapping for different provider types
+const ICON_MAPPING = {
+  'openai': OpenAIIcon,
+  'anthropic': AnthropicIcon,
+  'gemini': GeminiIcon,
+  'default': DefaultProviderIcon
+};
+
+// Load providers from JSON configuration
 try {
-  const rawConfig = process.env['EXPO_PUBLIC_PROVIDERS'];
-  if (rawConfig) {
-    const parsedConfig = JSON.parse(rawConfig);
-    
-    // Register providers from environment
-    Object.entries(parsedConfig).forEach(([key, config]: [string, any]) => {
-      if (!config.id || !config.displayName || !config.iconMappingKey) {
-        logWarn(`Provider config for '${key}' is missing required fields: id, displayName, or iconMappingKey`);
+  if (providersConfig && providersConfig.providers) {
+    // Register providers from configuration
+    Object.entries(providersConfig.providers).forEach(([key, config]) => {
+      if (!config.id || !config.displayName) {
+        logWarn(`Provider config for '${key}' is missing required fields: id or displayName`);
         return;
       }
       
-      // Skip if already registered
-      if (providerRegistry.getProvider(config.id)) {
-        logInfo(`Provider '${config.id}' already registered, skipping`);
-        return;
-      }
+      // Get the appropriate icon component based on iconMappingKey
+      const iconMappingKey = config.iconMappingKey ?? 'default';
+      const IconComponent = ICON_MAPPING[iconMappingKey as keyof typeof ICON_MAPPING] || ICON_MAPPING['default'];
       
       // Create and register the provider
       const provider: Provider = {
-        id: config.id,
+        id: config.id as ProviderIdentifier,
         displayName: config.displayName,
-        iconMappingKey: config.iconMappingKey,
-        getIcon: (props) => React.createElement(DefaultProviderIcon, props)
+        iconMappingKey: iconMappingKey,
+        getIcon: (props) => React.createElement(IconComponent, props)
       };
       
       providerRegistry.register(provider);
+      logInfo(`Registered provider: ${config.id} with icon: ${iconMappingKey}`);
     });
   }
 } catch (e) {
   const error = e as Error;
   logWarn(
-    `Failed to parse EXPO_PUBLIC_PROVIDERS: Error: ${error.message}, Raw config: ${process.env['EXPO_PUBLIC_PROVIDERS']}`
+    `Error loading provider configuration: ${error.message}`
   );
 }
 
-// Set default provider from environment
-const envDefaultProvider = process.env['EXPO_PUBLIC_DEFAULT_PROVIDER'];
-if (envDefaultProvider) {
-  providerRegistry.setDefaultProvider(envDefaultProvider as ProviderIdentifier);
+// Set the default provider from configuration
+if (providersConfig.defaultProvider) {
+  const defaultId = providersConfig.defaultProvider;
+  if (providerRegistry.getProvider(defaultId)) {
+    providerRegistry.setDefaultProvider(defaultId);
+    logInfo(`Set default provider to: ${defaultId}`);
+  } else {
+    logWarn(`Default provider '${defaultId}' not found in registry`);
+  }
+}
+
+// Export helper functions
+export const providers = Object.freeze(
+  Object.values(providerRegistry.getAllProviders()).reduce((acc, provider) => {
+    acc[provider.id] = {
+      id: provider.id,
+      displayName: provider.displayName,
+      icon: (props: any) => provider.getIcon(props)
+    };
+    return acc;
+  }, {} as Record<ProviderIdentifier, any>)
+);
+
+// Helper function to register a new provider at runtime
+export function registerProvider(provider: Provider): void {
+  providerRegistry.register(provider);
 }
 
 // Export everything
@@ -75,16 +105,10 @@ export const MODELPROVIDERS = Object.freeze(
     acc[provider.id] = {
       label: provider.id,
       displayName: provider.displayName,
-      icon: (props: any) => provider.getIcon(props)
+      icon: provider.getIcon
     };
     return acc;
   }, {} as Record<ProviderIdentifier, any>)
 );
 
 export const DEFAULT_PROVIDER = providerRegistry.getDefaultProvider()?.id || PROVIDER_GPT;
-
-// Helper function to register a new provider at runtime
-export function registerProvider(provider: Provider): void {
-  providerRegistry.register(provider);
-  // Note: MODELPROVIDERS will automatically update on next access
-} 

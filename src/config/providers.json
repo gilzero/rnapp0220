@@ -1,0 +1,25 @@
+{
+  "providers": {
+    "gpt": {
+      "id": "gpt",
+      "displayName": "GPT",
+      "iconMappingKey": "openai"
+    },
+    "claude": {
+      "id": "claude",
+      "displayName": "Claude",
+      "iconMappingKey": "anthropic"
+    },
+    "gemini": {
+      "id": "gemini",
+      "displayName": "Gemini",
+      "iconMappingKey": "gemini"
+    },
+    "example": {
+      "id": "example",
+      "displayName": "Example",
+      "iconMappingKey": "default"
+    }
+  },
+  "defaultProvider": "gpt"
+}
