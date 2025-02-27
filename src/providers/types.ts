@@ -10,7 +10,7 @@ export interface ProviderCapabilities {
 export interface Provider {
   id: string;
   displayName: string;
-  iconMappingKey?: string;
+  providerIconKey?: string;
   getIcon: (props: IconProps) => React.ReactNode;
   
   // Optional methods that can be overridden by specific providers

@@ -6,9 +6,8 @@ import rawProvidersConfig from './providers.json';
 // Define the expected shape of our JSON config
 interface ProvidersJsonConfig {
   providers: Record<string, {
-    id: string;
     displayName: string;
-    iconMappingKey?: string;
+    providerIconKey?: string;
   }>;
   defaultProvider: string;
 }
@@ -19,29 +18,35 @@ const providersConfig = rawProvidersConfig as ProvidersJsonConfig;
 /* ---------- Providers ---------- */
 
 // Icon mapping for different provider types
-const ICON_MAPPING = {
+export const PROVIDER_ICON_MAPPING = {
   'openai': OpenAIIcon,
   'anthropic': AnthropicIcon,
   'gemini': GeminiIcon,
   'default': DefaultProviderIcon
 } as const;
 
+// Helper function to get an icon component by key
+export const getProviderIcon = (iconKey?: string) => {
+  if (!iconKey) return PROVIDER_ICON_MAPPING['default'];
+  return PROVIDER_ICON_MAPPING[iconKey as keyof typeof PROVIDER_ICON_MAPPING] || PROVIDER_ICON_MAPPING['default'];
+};
+
 // Get providers from the JSON configuration file
 const providers: Record<string, ProviderEnvConfig> = (() => {
   try {
     // Validate the configuration
     Object.entries(providersConfig.providers).forEach(([key, config]) => {
-      if (!config.id || !config.displayName) {
-        throw new Error(`Provider config for '${key}' is missing required fields: id or displayName`);
+      if (!config.displayName) {
+        throw new Error(`Provider config for '${key}' is missing required field: displayName`);
       }
     });
 
     // Convert the JSON data to our expected type with proper type assertions
     return Object.entries(providersConfig.providers).reduce((acc, [key, config]) => {
       acc[key] = {
-        id: config.id as ProviderIdentifier,
+        id: key as ProviderIdentifier,
         displayName: config.displayName,
-        iconMappingKey: config.iconMappingKey ?? 'default'
+        providerIconKey: config.providerIconKey ?? 'default'
       };
       return acc;
     }, {} as Record<string, ProviderEnvConfig>);
@@ -59,7 +64,7 @@ export const MODELPROVIDERS = Object.freeze(Object.entries(providers).reduce((ac
   acc[key as ProviderIdentifier] = {
     label: key as ProviderIdentifier,
     displayName: config.displayName,
-    icon: config.iconMappingKey ? (ICON_MAPPING[config.iconMappingKey as keyof typeof ICON_MAPPING] || ICON_MAPPING['default']) : ICON_MAPPING['default']
+    icon: getProviderIcon(config.providerIconKey)
   };
   return acc;
 }, {} as Record<ProviderIdentifier, ModelProviderConfig>));

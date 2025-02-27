@@ -1,24 +1,20 @@
 {
   "providers": {
     "gpt": {
-      "id": "gpt",
       "displayName": "GPT",
-      "iconMappingKey": "openai"
+      "providerIconKey": "openai"
     },
     "claude": {
-      "id": "claude",
       "displayName": "Claude",
-      "iconMappingKey": "anthropic"
+      "providerIconKey": "anthropic"
     },
     "gemini": {
-      "id": "gemini",
       "displayName": "Gemini",
-      "iconMappingKey": "gemini"
+      "providerIconKey": "gemini"
     },
     "example": {
-      "id": "example",
-      "displayName": "Example",
-      "iconMappingKey": "default"
+      "displayName": "Example Default",
+      "providerIconKey": "default"
     }
   },
   "defaultProvider": "gpt"

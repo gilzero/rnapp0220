@@ -3,7 +3,7 @@ import React from 'react';
 import Svg, { Path, G } from 'react-native-svg';
 import { IconProps, Theme } from '../config';
 
-const defaultTheme: Theme = {
+const iconDefaultTheme: Theme = {
   name: 'light',
   backgroundColor: '#fff',
   textColor: '#000',
@@ -25,7 +25,7 @@ const defaultTheme: Theme = {
 export function AppIcon({
   size = 100,
   fill = 'black',
-  theme = defaultTheme,
+  theme = iconDefaultTheme,
   selected,
   ...props
 }: IconProps) {

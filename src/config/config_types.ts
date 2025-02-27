@@ -1,6 +1,7 @@
 // src/config/config_types.ts
 import { SetStateAction, Dispatch } from 'react';
 import { NumberProp } from 'react-native-svg';
+import rawProvidersConfig from './providers.json';
 
 /* ---------- Types and Interfaces ---------- */
 export type MessageRole = 'user' | 'assistant' | 'system';
@@ -59,7 +60,12 @@ export interface AppContext {
   clearChatRef: React.MutableRefObject<(() => void) | undefined>;
 }
 
-export type ProviderIdentifier = 'gpt' | 'claude' | 'gemini';
+// Extract provider keys from the JSON for type safety
+type ProvidersJson = typeof rawProvidersConfig;
+type ProviderKeys = keyof ProvidersJson['providers'];
+
+// Use the keys from the JSON as the provider identifiers
+export type ProviderIdentifier = ProviderKeys;
 
 export interface ModelProviderConfig {
   label: ProviderIdentifier;
@@ -70,7 +76,7 @@ export interface ModelProviderConfig {
 export interface ProviderEnvConfig {
   id: ProviderIdentifier;
   displayName: string;
-  iconMappingKey?: string;
+  providerIconKey?: string;
 }
 
 export interface BottomSheetStyles {
