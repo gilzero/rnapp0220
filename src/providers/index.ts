@@ -3,6 +3,7 @@ import { providerRegistry } from './registry';
 import { openaiProvider } from './implementations/openai';
 import { claudeProvider } from './implementations/claude';
 import { geminiProvider } from './implementations/gemini';
+import { exampleProvider } from './implementations/exampleProvider';
 import { Provider, ProviderIdentifier } from './types';
 import { DefaultProviderIcon } from '../components/Icons';
 import React from 'react';
@@ -12,6 +13,7 @@ import { logInfo, logWarn } from '../utils';
 providerRegistry.register(openaiProvider);
 providerRegistry.register(claudeProvider);
 providerRegistry.register(geminiProvider);
+providerRegistry.register(exampleProvider);
 
 // Load providers from environment
 try {
@@ -59,6 +61,7 @@ if (envDefaultProvider) {
 // Export everything
 export * from './types';
 export * from './registry';
+export * from './hooks';
 
 // Export a compatibility layer for existing code
 export const PROVIDER_GPT = 'gpt' as const;
@@ -66,13 +69,22 @@ export const PROVIDER_CLAUDE = 'claude' as const;
 export const PROVIDER_GEMINI = 'gemini' as const;
 
 // Create a MODELPROVIDERS object that matches the original format
-export const MODELPROVIDERS = providerRegistry.getAllProviders().reduce((acc, provider) => {
-  acc[provider.id] = {
-    label: provider.id,
-    displayName: provider.displayName,
-    icon: (props: any) => provider.getIcon(props)
-  };
-  return acc;
-}, {} as Record<ProviderIdentifier, any>);
+// This is a dynamic getter that will always return the latest providers
+export const MODELPROVIDERS = Object.freeze(
+  providerRegistry.getAllProviders().reduce((acc, provider) => {
+    acc[provider.id] = {
+      label: provider.id,
+      displayName: provider.displayName,
+      icon: (props: any) => provider.getIcon(props)
+    };
+    return acc;
+  }, {} as Record<ProviderIdentifier, any>)
+);
 
-export const DEFAULT_PROVIDER = providerRegistry.getDefaultProvider()?.id || PROVIDER_GPT; 
+export const DEFAULT_PROVIDER = providerRegistry.getDefaultProvider()?.id || PROVIDER_GPT;
+
+// Helper function to register a new provider at runtime
+export function registerProvider(provider: Provider): void {
+  providerRegistry.register(provider);
+  // Note: MODELPROVIDERS will automatically update on next access
+} 

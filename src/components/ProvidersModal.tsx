@@ -8,8 +8,8 @@
 import { useContext } from 'react'
 import { View, Text, StyleSheet, TouchableHighlight, Alert } from 'react-native'
 import { ThemeContext, AppContext } from '../contexts'
-import { MODELPROVIDERS, ModelProviderConfig, THEMES, APP_CONFIG } from '../config'
-import { providerRegistry } from '../providers'
+import { ModelProviderConfig, THEMES, APP_CONFIG } from '../config'
+import { useProviders } from '../providers'
 
 interface ProvidersModalProps {
   handlePresentModalPress: () => void;
@@ -18,8 +18,10 @@ interface ProvidersModalProps {
 export function ProvidersModal({ handlePresentModalPress }: ProvidersModalProps) {
   const { theme } = useContext(ThemeContext)
   const { setChatType, chatType, clearChatRef } = useContext(AppContext)
-  const styles = getStyles(theme)
-  const options = Object.values(MODELPROVIDERS)
+  const styles = getStyles(theme as any)
+  
+  // Get providers using our custom hook - will update automatically when providers change
+  const options = useProviders();
 
   function _setChatType(newModel: ModelProviderConfig) {
     // Don't show dialog if selecting the same model
@@ -78,8 +80,8 @@ export function ProvidersModal({ handlePresentModalPress }: ProvidersModalProps)
             <TouchableHighlight
               underlayColor={'transparent'}
               onPress={() => _setChatType(option)}
-              key={index}>
-              <View style={optionContainer(theme, chatType.label, option.label)}>
+              key={option.label || index}>
+              <View style={optionContainer(theme as any, chatType.label, option.label)}>
                 {option.icon && (
                   <option.icon
                     size={20}
@@ -87,7 +89,7 @@ export function ProvidersModal({ handlePresentModalPress }: ProvidersModalProps)
                     selected={chatType.label === option.label}
                   />
                 )}
-                <Text style={optionText(theme, chatType.label, option.label)}>
+                <Text style={optionText(theme as any, chatType.label, option.label)}>
                   {option.displayName}
                 </Text>
               </View>
