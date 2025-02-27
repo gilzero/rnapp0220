@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { THEMES, APP_CONFIG } from '../config';
-import { logError, logException, logInfo } from '../utils';
+import { logException, logInfo } from '../utils';
 import { ErrorType, ErrorSeverity, ApplicationError } from '../utils/errorHandler';
 
 interface Props {

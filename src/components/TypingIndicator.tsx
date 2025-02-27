@@ -1,3 +1,4 @@
+// filepath: src/components/TypingIndicator.tsx
 import React, { memo } from 'react';
 import { View, Animated, Text } from 'react-native';
 import { getStyles } from './ChatStyles';
