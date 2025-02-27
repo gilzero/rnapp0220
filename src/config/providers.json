@@ -13,7 +13,15 @@
       "providerIconKey": "gemini"
     },
     "example": {
-      "displayName": "Example Default",
+      "displayName": "Example",
+      "providerIconKey": "default"
+    },
+    "perplexity": {
+      "displayName": "Perplexity",
+      "providerIconKey": "default"
+    },
+    "groq": {
+      "displayName": "Groq",
       "providerIconKey": "default"
     }
   },
