@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { THEMES, APP_CONFIG } from '../config';
 import { logException, logInfo } from '../utils';
 import { ErrorType, ErrorSeverity, ApplicationError } from '../utils/errorHandler';
+import * as Sentry from '@sentry/react-native';
 
 interface Props {
   children: React.ReactNode;
@@ -36,6 +37,23 @@ export class ErrorBoundary extends React.Component<Props, State> {
       severity: ErrorSeverity.HIGH,
       originalError: error,
       metadata: {
+        componentStack: errorInfo.componentStack
+      }
+    });
+
+    // Report to Sentry
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack
+        },
+        error: {
+          type: ErrorType.CLIENT,
+          code: 'UI_ERROR',
+          severity: ErrorSeverity.HIGH
+        }
+      },
+      extra: {
         componentStack: errorInfo.componentStack
       }
     });

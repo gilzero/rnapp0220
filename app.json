@@ -27,7 +27,15 @@
       "favicon": "./src/assets/favicon.png"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "rnapp0210",
+          "organization": "gilzero"
+        }
+      ]
     ]
   }
 }

@@ -25,6 +25,7 @@
     "@react-navigation/native-stack": "^6.9.16",
     "@reduxjs/toolkit": "^2.6.0",
     "@ronradtke/react-native-markdown-display": "^8.0.0",
+    "@sentry/react-native": "^6.9.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "expo": "^51.0.31",
@@ -41,6 +42,7 @@
     "moti": "^0.30.0",
     "node-libs-react-native": "^1.2.1",
     "os-browserify": "^0.3.0",
+    "promise": "8.3.0",
     "punycode": "^2.3.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -70,6 +72,11 @@
     "@types/react-native": "^0.72.6",
     "@types/uuid": "^9.0.7",
     "typescript": "~5.3.3"
+  },
+  "resolutions": {
+    "promise": "8.3.0",
+    "fbjs/promise": "8.3.0",
+    "react-native-web/fbjs/promise": "8.3.0"
   },
   "private": true
 }

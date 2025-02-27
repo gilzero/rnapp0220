@@ -1,6 +1,7 @@
 // filepath: src/utils/logger.ts
 // fileoverview: Advanced logging utility for the application
 import * as FileSystem from 'expo-file-system';
+import * as Sentry from '@sentry/react-native';
 
 // Define log levels
 export enum LogLevel {
@@ -20,12 +21,22 @@ const LOG_LEVEL_NAMES = {
   [LogLevel.DEBUG]: 'DEBUG',
 };
 
+// Sentry level mapping
+const SENTRY_LEVEL_MAP = {
+  [LogLevel.ERROR]: 'error',
+  [LogLevel.WARN]: 'warning',
+  [LogLevel.INFO]: 'info',
+  [LogLevel.HTTP]: 'info',
+  [LogLevel.DEBUG]: 'debug',
+};
+
 // Configuration
 const LOG_CONFIG = {
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
   MAX_FILES: 5,
   LOG_DIR: 'logs',
   CURRENT_LEVEL: __DEV__ ? LogLevel.DEBUG : LogLevel.INFO,
+  SENTRY_MIN_LEVEL: __DEV__ ? LogLevel.ERROR : LogLevel.WARN, // Only send ERROR and WARN to Sentry in production
 };
 
 // Log file paths
@@ -193,6 +204,17 @@ class Logger {
         encoding: FileSystem.EncodingType.UTF8
       });
 
+      // Send to Sentry if level is at or above the minimum Sentry level
+      if (level <= LOG_CONFIG.SENTRY_MIN_LEVEL) {
+        const sentryLevel = SENTRY_LEVEL_MAP[level];
+        Sentry.addBreadcrumb({
+          category: 'log',
+          message: message,
+          level: sentryLevel as any,
+          data: meta
+        });
+      }
+
       // Also log to console in development
       if (__DEV__) {
         const hasValidMeta = meta && typeof meta === 'object' && Object.keys(meta).length > 0;
@@ -236,7 +258,19 @@ class Logger {
 
   async exception(error: Error, context?: string): Promise<void> {
     const message = context ? `${context}: ${error.message}` : error.message;
-    return this.error(message, { stack: error.stack });
+    await this.error(message, { stack: error.stack });
+    
+    // Send to Sentry
+    Sentry.captureException(error, {
+      contexts: {
+        error: {
+          context: context || 'unknown'
+        }
+      },
+      extra: {
+        stack: error.stack
+      }
+    });
   }
 }
 

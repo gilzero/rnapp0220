@@ -33,6 +33,27 @@ import { ProvidersModal } from './components';
 import { ThemeContext, AppContext } from './contexts';
 import { ErrorBoundary } from './components';
 import { logInfo, logError, logDebug, logWarn, setupGlobalErrorHandlers } from './utils';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://9c08d89bdd154f620ff60553b32520c1@o4507451374370816.ingest.us.sentry.io/4508892284911616',
+  // Set environment based on __DEV__
+  environment: __DEV__ ? 'development' : 'production',
+  // Enable performance monitoring
+  enableTracing: true,
+  // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
+  tracesSampleRate: __DEV__ ? 1.0 : 0.2,
+  // Enable auto session tracking
+  autoSessionTracking: true,
+  // Set debug to true in development
+  debug: __DEV__,
+  // Enable React Native specific features
+  enableNative: true,
+  // Enable auto breadcrumbs
+  enableAutoPerformanceTracing: true,
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 const { STORAGE_KEYS } = APP_CONFIG;
 
@@ -195,4 +216,5 @@ const App: React.FC = () => {
   )
 }
 
-export default App
+// Wrap the App component with Sentry
+export default Sentry.wrap(App);

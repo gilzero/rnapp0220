@@ -2,6 +2,7 @@
 // fileoverview: Centralized error handling utility for the application
 import { logError, logException } from './logger';
 import { APP_CONFIG } from '../config';
+import * as Sentry from '@sentry/react-native';
 
 // Define error types
 export enum ErrorType {
@@ -85,6 +86,19 @@ export function handleError(error: Error | AppError | unknown, context?: string)
     context || 'Error Handler'
   );
 
+  // Send to Sentry
+  Sentry.captureException(appError.originalError || new Error(appError.message), {
+    contexts: {
+      error: {
+        type: appError.type,
+        severity: appError.severity,
+        code: appError.code,
+        context: context || 'Error Handler'
+      }
+    },
+    extra: appError.metadata || {}
+  });
+
   return appError;
 }
 
@@ -100,6 +114,19 @@ export function handleNetworkError(error: Error, endpoint?: string): AppError {
   });
 
   logError(`Network error: ${error.message}`, { endpoint });
+  
+  // Send to Sentry
+  Sentry.captureException(error, {
+    contexts: {
+      error: {
+        type: ErrorType.NETWORK,
+        severity: ErrorSeverity.MEDIUM,
+        code: 'NETWORK_ERROR',
+      }
+    },
+    extra: endpoint ? { endpoint } : {}
+  });
+
   return networkError;
 }
 
@@ -115,6 +142,19 @@ export function handleValidationError(error: Error, field?: string): AppError {
   });
 
   logError(`Validation error: ${error.message}`, { field });
+  
+  // Send to Sentry
+  Sentry.captureException(error, {
+    contexts: {
+      error: {
+        type: ErrorType.VALIDATION,
+        severity: ErrorSeverity.LOW,
+        code: 'VALIDATION_ERROR',
+      }
+    },
+    extra: field ? { field } : {}
+  });
+
   return validationError;
 }
 
@@ -130,6 +170,19 @@ export function handleServerError(error: Error, endpoint?: string): AppError {
   });
 
   logError(`Server error: ${error.message}`, { endpoint });
+  
+  // Send to Sentry
+  Sentry.captureException(error, {
+    contexts: {
+      error: {
+        type: ErrorType.SERVER,
+        severity: ErrorSeverity.HIGH,
+        code: 'SERVER_ERROR',
+      }
+    },
+    extra: endpoint ? { endpoint } : {}
+  });
+
   return serverError;
 }
 
@@ -144,6 +197,19 @@ export function handleAuthError(error: Error): AppError {
   });
 
   logError(`Authentication error: ${error.message}`);
+  
+  // Send to Sentry
+  Sentry.captureException(error, {
+    contexts: {
+      error: {
+        type: ErrorType.AUTHENTICATION,
+        severity: ErrorSeverity.HIGH,
+        code: 'AUTH_ERROR',
+      }
+    },
+    extra: {}
+  });
+
   return authError;
 }
 
@@ -152,11 +218,29 @@ export function setupGlobalErrorHandlers() {
   // Handle unhandled promise rejections
   const handleUnhandledRejection = (error: any) => {
     logError('Unhandled Promise Rejection', error);
+    Sentry.captureException(error, {
+      contexts: {
+        error: {
+          type: ErrorType.UNKNOWN,
+          context: 'Unhandled Promise Rejection'
+        }
+      },
+      extra: {}
+    });
   };
 
   // Handle uncaught exceptions
   const handleUncaughtException = (error: Error) => {
     logError('Uncaught Exception', error);
+    Sentry.captureException(error, {
+      contexts: {
+        error: {
+          type: ErrorType.UNKNOWN,
+          context: 'Uncaught Exception'
+        }
+      },
+      extra: {}
+    });
   };
 
   // Set up global handlers

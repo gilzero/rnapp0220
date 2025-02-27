@@ -1,6 +1,9 @@
 # Application Logs
 
-logs are likely  not  in  this  directory, because  of iOS  system  restrictions.
+logs are likely  not  in  this  directory, because  of iOS  system  sandboxing.
+
+Alternative, consider  use  of  third-party  logging  libraries  like  sentry:
+https://sentry.io/
 
 ## Log Files
 
