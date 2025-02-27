@@ -9,6 +9,7 @@ import { useContext } from 'react'
 import { View, Text, StyleSheet, TouchableHighlight, Alert } from 'react-native'
 import { ThemeContext, AppContext } from '../contexts'
 import { MODELPROVIDERS, ModelProviderConfig, THEMES, APP_CONFIG } from '../config'
+import { providerRegistry } from '../providers'
 
 interface ProvidersModalProps {
   handlePresentModalPress: () => void;

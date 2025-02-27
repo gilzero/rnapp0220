@@ -12,8 +12,9 @@
  * - Smoother UI updates
  */
 import EventSource from 'react-native-sse';
-import { ChatMessage, ProviderIdentifier, DOMAIN, APP_CONFIG } from "../config";
+import { ChatMessage, APP_CONFIG } from "../config";
 import { createSSEConnection, ChatError, logInfo, logError, logDebug } from '../utils';
+import { providerRegistry, ProviderIdentifier } from '../providers';
 
 export interface ChatOptions {
   provider?: ProviderIdentifier;
@@ -32,7 +33,25 @@ const { STREAM } = APP_CONFIG.NETWORK.TIMEOUTS;
 
 class ChatService {
   private getApiUrl() {
-    return DOMAIN;
+    // Use the environment-specific API URL
+    const isProduction = process.env['EXPO_PUBLIC_ENV'] === 'PRODUCTION';
+    return isProduction 
+      ? process.env['EXPO_PUBLIC_PROD_API_URL'] 
+      : process.env['EXPO_PUBLIC_DEV_API_URL'];
+  }
+
+  private getProviderId(providerId?: ProviderIdentifier): ProviderIdentifier {
+    if (!providerId) {
+      return providerRegistry.getDefaultProvider()?.id || 'gpt';
+    }
+    
+    const provider = providerRegistry.getProvider(providerId);
+    if (!provider) {
+      logError(`Provider not found: ${providerId}, using default`);
+      return providerRegistry.getDefaultProvider()?.id || 'gpt';
+    }
+    
+    return provider.id;
   }
 
   async streamChat( // Streaming method - primarily used (default)
@@ -41,12 +60,19 @@ class ChatService {
     callbacks: ChatCallbacks
   ) {
     const { onToken, onError, onComplete } = callbacks;
-    const { provider = '${provider}' } = options;
-    const url = `${this.getApiUrl()}/chat/${provider}`;
-    const body = JSON.stringify({ messages });
+    const providerId = this.getProviderId(options.provider);
+    const provider = providerRegistry.getProvider(providerId);
+    
+    // Apply provider-specific message transformations if available
+    const preparedMessages = provider?.prepareMessages 
+      ? provider.prepareMessages(messages) 
+      : messages;
+    
+    const url = `${this.getApiUrl()}/chat/${providerId}`;
+    const body = JSON.stringify({ messages: preparedMessages });
 
     logInfo('Starting chat stream request', { 
-      provider,
+      provider: providerId,
       messageCount: messages.length,
       url,
       action: 'stream_chat_request'
@@ -63,7 +89,7 @@ class ChatService {
         // Only reject if the stream hasn't completed yet
         if (!streamCompleted) {
           logError('Stream request timed out', {
-            provider,
+            provider: providerId,
             timeoutMs: STREAM,
             action: 'stream_timeout'
           });
@@ -94,7 +120,7 @@ class ChatService {
           }
           
           logInfo('Stream completed normally', {
-            provider,
+            provider: providerId,
             totalTokens: tokenCount,
             action: 'stream_complete'
           });
@@ -113,7 +139,7 @@ class ChatService {
             // Log every 50 tokens to avoid excessive logging
             if (tokenCount % 50 === 0) {
               logDebug('Stream progress', {
-                provider,
+                provider: providerId,
                 tokenCount,
                 messageId,
                 action: 'stream_progress'
@@ -136,7 +162,7 @@ class ChatService {
         // Only notify disconnection if the stream didn't complete normally
         if (!isCompletedNormally) {
           logInfo('Stream closed unexpectedly', {
-            provider,
+            provider: providerId,
             tokenCount,
             action: 'stream_closed'
           });
@@ -154,7 +180,7 @@ class ChatService {
       }
       
       logError('Stream chat request failed', {
-        provider,
+        provider: providerId,
         error: error instanceof Error ? error.message : String(error),
         action: 'stream_request_failed'
       });
@@ -171,30 +197,36 @@ class ChatService {
 
   // Non-streaming method - appears to be mainly used for health checks
   async chat(messages: ChatMessage[], options: ChatOptions): Promise<string> {
-    const { provider } = options;
+    const providerId = this.getProviderId(options.provider);
+    const provider = providerRegistry.getProvider(providerId);
+    
+    // Apply provider-specific message transformations if available
+    const preparedMessages = provider?.prepareMessages 
+      ? provider.prepareMessages(messages) 
+      : messages;
     
     logInfo('Starting non-streaming chat request', {
-      provider,
+      provider: providerId,
       messageCount: messages.length,
       action: 'chat_request'
     });
     
     try {
-      const response = await fetch(`${this.getApiUrl()}/chat/${provider}`, {
+      const response = await fetch(`${this.getApiUrl()}/chat/${providerId}`, {
         // Regular REST API call
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages
+          messages: preparedMessages
         })
       });
 
       if (!response.ok) {
         const errorMsg = `Server responded with status: ${response.status}`;
         logError('Chat request failed with HTTP error', {
-          provider,
+          provider: providerId,
           status: response.status,
           statusText: response.statusText,
           action: 'chat_http_error'
@@ -206,7 +238,7 @@ class ChatService {
       const content = data.content || '';
       
       logInfo('Chat request completed successfully', {
-        provider,
+        provider: providerId,
         responseLength: content.length,
         action: 'chat_success'
       });
@@ -214,7 +246,7 @@ class ChatService {
       return content;
     } catch (error) {
       logError('Chat request failed', {
-        provider,
+        provider: providerId,
         error: error instanceof Error ? error.message : String(error),
         action: 'chat_request_failed'
       });
