@@ -133,6 +133,17 @@ class ChatService {
           const content = parsed.delta?.content || '';
           const messageId = parsed.id;
           if (content && messageId) {
+            // Log the first token to help debug truncation issues
+            if (tokenCount === 0) {
+              logDebug('First token received', {
+                provider: providerId,
+                firstToken: content,
+                messageId,
+                tokenLength: content.length,
+                action: 'first_token'
+              });
+            }
+            
             tokenCount++;
             onToken(content, messageId);
             

@@ -185,6 +185,16 @@ export function useChatController({ scrollToBottom }: ChatControllerProps) {
         },
         {
           onToken: (token, messageId) => {
+            // Debug log for token content
+            if (!responseMap.has(messageId)) {
+              logDebug('First token for message', { 
+                token, 
+                tokenLength: token.length,
+                messageId,
+                action: 'first_token_received'
+              });
+            }
+            
             const currentContent = responseMap.get(messageId) || '';
             const newContent = currentContent + token;
             responseMap.set(messageId, newContent);
