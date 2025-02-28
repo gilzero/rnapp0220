@@ -136,9 +136,9 @@ export function useChatController({ scrollToBottom }: ChatControllerProps) {
     });
     
     // For privacy reasons, we log a truncated version of the message
-    logDebug('User message content (truncated)', { 
-      preview: userMessage.content && userMessage.content.length > 30 
-        ? `${userMessage.content.substring(0, 30)}...` 
+    logDebug('User message content (partial: first 50 chars)', { 
+      preview: userMessage.content && userMessage.content.length > 50 
+        ? `${userMessage.content.substring(0, 50)}...` 
         : userMessage.content || '',
       action: 'user_message_content'
     });
@@ -185,16 +185,6 @@ export function useChatController({ scrollToBottom }: ChatControllerProps) {
         },
         {
           onToken: (token, messageId) => {
-            // Debug log for token content
-            if (!responseMap.has(messageId)) {
-              logDebug('First token for message', { 
-                token, 
-                tokenLength: token.length,
-                messageId,
-                action: 'first_token_received'
-              });
-            }
-            
             const currentContent = responseMap.get(messageId) || '';
             const newContent = currentContent + token;
             responseMap.set(messageId, newContent);
@@ -267,7 +257,7 @@ export function useChatController({ scrollToBottom }: ChatControllerProps) {
                 });
                 
                 // For privacy reasons, we log a truncated version of the message
-                logDebug('AI response content (truncated)', { 
+                logDebug('AI response content (partial: first 50 chars)', { 
                   preview: lastMessage.content && lastMessage.content.length > 50 
                     ? `${lastMessage.content.substring(0, 50)}...` 
                     : lastMessage.content || '',

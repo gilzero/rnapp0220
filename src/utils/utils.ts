@@ -165,20 +165,6 @@ export async function createSSEConnection(
     return new Promise((resolve, reject) => {
       let isResolved = false;
       let timeoutId: NodeJS.Timeout | null = null;
-      let messageReceived = false;
-      
-      // Add a message event listener before resolving the promise
-      // to ensure we don't miss the first message
-      es.addEventListener('message', (event) => {
-        if (!messageReceived) {
-          messageReceived = true;
-          logDebug('First SSE message received', { 
-            dataLength: event.data?.length || 0,
-            hasData: !!event.data,
-            action: 'first_sse_message'
-          });
-        }
-      });
       
       timeoutId = setTimeout(() => {
         if (!isResolved) {
